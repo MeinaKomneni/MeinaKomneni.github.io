@@ -4,7 +4,142 @@
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
-  <textarea id="md" rows="10" cols="50"># Hello Markdown 👋</textarea>
+  <textarea id="md" rows="10" cols="50">
+    ## Chunk
+
+一般结构如下（地址从低到高）：
+
+```
++---------------+ ← chunk起始地址
+|   prev_size   | 前一个 free chunk 的大小
++---------------+ 
+|     size      | 分配的内存大小
++---------------+
+|    fd(next)   | 指向链表下一个空闲 chunk (previous free chunk)
++---------------+
+|    bk(prev)   | 指向链表上一个空闲 chunk (next free chunk)，若在 fast bin 中则不使用。
++---------------+
+|     data      | 数据区域
++---------------+
+|    padding    | 填充
++---------------+
+```
+
+## Unsorted Bin 
+存储 `free` 了的 **chunk** 的地址， 
+是一个双向链表，所以同时使用 **chunk** 的 `fd` 和 `bk` 指针维护链表关系，存在检查：`p->fd->bk == p` 和 `p->bk->fd == p`。
+
+采用先进先出原则。
+
+## Fast Bin
+当 **chunk** 满足：
+$$ size \leq \text{0x80} $$
+`free` 后，它的地址会被放入 **fast bin** 中，采用先进后出原则。
+
+`malloc` 的分配方式为从低到高，并且优先采用在 **fast bin** 或 **unsorted bin** 中已经 `free` 的堆块。所以我们可以利用 **fast bin** 或 **unsorted bin** 的特性来控制下一次 `malloc` 返回的地址。
+
+几个著名的利用：
+
+## Double Free
+引自：[link](https://wiki.wgpsec.org/knowledge/ctf/how2heap.html)
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <malloc.h>
+//gcc -g fastbin_dup.c -o fastbin_dup
+//pwndbg> set environment GLIBC_TUNABLES=glibc.malloc.tcache_count=0
+int main()
+{
+    fprintf(stderr, "这个例子演示了 fastbin 的 double free\n");
+
+    fprintf(stderr, "首先申请了 3 个 chunk\n");
+    char* a = malloc(8);
+    strcpy(a, "AAAAAAA");
+    char* b = malloc(8);
+    strcpy(b, "BBBBBBB");
+    char* c = malloc(8);
+    strcpy(c, "CCCCCCC");
+
+    fprintf(stderr, "第一个 malloc(8): %p\n", a);
+    fprintf(stderr, "第二个 malloc(8): %p\n", b);
+    fprintf(stderr, "第三个 malloc(8): %p\n", c);
+
+    fprintf(stderr, "free 掉第一个\n");
+    free(a);
+
+    fprintf(stderr, "当我们再次 free %p 的时候, 程序将会崩溃因为 %p 在 free 链表的第一个位置上\n", a, a);
+    // free(a);
+    fprintf(stderr, "我们先 free %p.\n", b);
+    free(b);
+
+    fprintf(stderr, "现在我们就可以再次 free %p 了, 因为他现在不在 free 链表的第一个位置上\n", a);
+    free(a);
+    fprintf(stderr, "现在空闲链表是这样的 [ %p, %p, %p ]. 如果我们 malloc 三次, 我们会得到两次 %p \n", a, b, a, a);
+    
+    char* d = malloc(8);
+    char* e = malloc(8);
+    char* f = malloc(8);
+    strcpy(d, "DDDDDDD");
+    strcpy(e, "EEEEEEE");
+    strcpy(f, "FFFFFFF");
+    fprintf(stderr, "第一次 malloc(8): %p\n", d);
+    fprintf(stderr, "第二次 malloc(8): %p\n", e);
+    fprintf(stderr, "第三次 malloc(8): %p\n", f);
+}
+```
+因为申请的内存较小，`free` 时 `a` 和 `b` 都会被放在 **fast bin** 中。
+
+现在，`a` 在 **fast bin** 的顶端，我们直接再次 `free(a)` 时程序会崩溃，但只要先 `free(b)` 再 `free(a)`，就能在 **fast bin** 中形成 `a -> b -> a` 的循环链表结构，此后的第一次和第三次 `malloc(0x20)`，都会返回 `a` 的地址。
+
+值得一提的是，在高版本的 glibc 2.32 中，会出现内存中的 `fd` 与实际连接的 `fd` 不一致的情况，这是因为引入了 **safe-linking** 机制。
+
+加密公式：
+
+    stored_fd = actual_fd ^ (chunk_addr >> 12)
+
+解密公式：
+
+    actual_fd = stored_fd ^ (chunk_addr >> 12)
+
+当 bin 中只含一个堆时，由于 `actual_fd = 0`，内存上的 `stored_fd`
+即 `chunk_addr >> 12`。可以这样处理 **safe-linking** 机制。
+
+此外，由于 glibc 2.26 引入了 **tcache**，会使这样的 **double free** 失效。它的绕过我们以后再说，暂时先在 **gdb** 时输入该指令，令 **tcache** 容纳量为 0 吧。（其实所谓绕过就和这个类似\^_\^）
+
+```bash
+gdb fastbin_dup
+pwndbg> set environment GLIBC_TUNABLES=glibc.malloc.tcache_count=0
+pwndbg> b main
+pwndbg> r
+```
+<!-- 这是注释内容，在渲染时不会显示 
+堆的分配一般是相邻的。利用 **堆溢出**，可以覆盖相邻下一个堆的 `fd` ，经过一次 `malloc` 后，下一次 `malloc` 就会返回到我们输入的地址，从而实现**任意地址写入**。溢出所用的 payload 的格式大概是：
+
+```python
+payload = padding + p64(0x0) + p64(0x20) + p64(my_addr)
+#0x0：prev_size 前一个 free chunk 的大小
+#0x20：size 分配的内存大小
+```
+-->
+
+## __free_hook
+
+当程序执行 `free` 函数时，会检查 **__free_hook** 的值是否为 0。当不为 0 时，就会直接跳转到 **__free_hook** 内的地址继续往下执行。
+
+利用前面提到的 **Double Free**，我们就能修改 **__free_hook** 的内容为 system_addr，执行 `free("\bin\sh")` 时，恰好使 `rdi = &"\bin\sh"`， 就能打通了。
+
+```c
+//double free, __free_hook = system_addr
+void *a = malloc(0x20);
+strcpy(a,"\bin\sh");
+free(a);
+//now we get shell :)
+```
+
+ps: **free_hook** 在 glibc 2.34 移除了......
+  </textarea>
   <div id="preview"></div>
 
   <script>
