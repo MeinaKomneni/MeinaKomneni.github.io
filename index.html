@@ -4,8 +4,8 @@
 <head>
     <meta charset="utf-8" />
     <title>Erik_Aoi</title>
-    <meta name="author" content="John Doe" />
-    <meta name="description" content="" />
+    <meta name="author" content="Kanade" />
+    <meta name="description" content="曾是学oi的（我觉得我是），现在主业ctf。很菜。" />
     <meta name="keywords" content="" />
     <meta
         name="viewport"
@@ -167,7 +167,7 @@
             <div class="wrap">
                 <h1>Erik_Aoi</h1>
                 <h3></h3>
-                <h5></h5>
+                <h5>曾是学oi的（我觉得我是），现在主业ctf。很菜。</h5>
             </div>
         </span>
     </div>
@@ -198,112 +198,7 @@
     <div class="description">
         <div class="content" v-pre>
             
-            <h2 id="Chunk"><a href="#Chunk" class="headerlink" title="Chunk"></a>Chunk</h2><p>chunk 一般结构如下（地址从低到高）：</p>
-<p><code>malloc</code> 时：</p>
-<pre><code>+---------------+ ← chunk起始地址
-|   prev_size   | 前一个 free chunk 的大小
-+---------------+ 
-|     size      | 分配的内存大小
-+---------------+ &lt;-malloc返回的地址
-|     data      | 
-+---------------+
-</code></pre>
-<p><code>free</code> 后：</p>
-<pre><code>+---------------+ ← chunk起始地址
-|   prev_size   | 前一个 free chunk 的大小
-+---------------+ 
-|     size      | 分配的内存大小
-+---------------+
-|    fd(next)   | 指向链表下一个空闲 chunk (previous free chunk)
-+---------------+
-|    bk(prev)   | 指向链表上一个空闲 chunk (next free chunk)，若在 fast bin 中则不使用。
-+---------------+
-</code></pre>
-<p><strong>可见 fd 与 data 的位置是重合的</strong>。因此配合 <strong>Double Free</strong>，可以任意地址写入。</p>
-<h2 id="Unsorted-Bin"><a href="#Unsorted-Bin" class="headerlink" title="Unsorted Bin"></a>Unsorted Bin</h2><p>存储 <code>free</code> 了的 <strong>chunk</strong> 的地址，<br>是一个双向链表，所以同时使用 <strong>chunk</strong> 的 <code>fd</code> 和 <code>bk</code> 指针维护链表关系，存在检查：<code>p-&gt;fd-&gt;bk == p</code> 和 <code>p-&gt;bk-&gt;fd == p</code>。</p>
-<p>采用先进先出原则。</p>
-<h2 id="Fast-Bin"><a href="#Fast-Bin" class="headerlink" title="Fast Bin"></a>Fast Bin</h2><p>当 <strong>chunk</strong> 满足：<br>$$ size &lt; \text{0x80} $$<br><code>free</code> 后，它的地址会被放入 <strong>fast bin</strong> 中，采用先进后出原则。</p>
-<p><code>malloc</code> 的分配方式为地址从低到高，并且优先采用在 <strong>fast bin</strong> 或 <strong>unsorted bin</strong> 中已经 <code>free</code> 的堆块。所以我们可以利用 <strong>fast bin</strong> 或 <strong>unsorted bin</strong> 的特性来控制下一次 <code>malloc</code> 返回的地址。</p>
-<h2 id="Double-Free"><a href="#Double-Free" class="headerlink" title="Double Free"></a>Double Free</h2><p>引自：<a target="_blank" rel="noopener" href="https://wiki.wgpsec.org/knowledge/ctf/how2heap.html">Link</a></p>
-<pre><code class="c">#include &lt;stdio.h&gt;
-#include &lt;stdlib.h&gt;
-#include &lt;string.h&gt;
-#include &lt;malloc.h&gt;
-//gcc -g fastbin_dup.c -o fastbin_dup
-//pwndbg&gt; set environment GLIBC_TUNABLES=glibc.malloc.tcache_count=0
-int main()
-&#123;
-    fprintf(stderr, &quot;这个例子演示了 fastbin 的 double free\n&quot;);
-
-    fprintf(stderr, &quot;首先申请了 3 个 chunk\n&quot;);
-    char* a = malloc(8);
-    strcpy(a, &quot;AAAAAAA&quot;);
-    char* b = malloc(8);
-    strcpy(b, &quot;BBBBBBB&quot;);
-    char* c = malloc(8);
-    strcpy(c, &quot;CCCCCCC&quot;);
-
-    fprintf(stderr, &quot;第一个 malloc(8): %p\n&quot;, a);
-    fprintf(stderr, &quot;第二个 malloc(8): %p\n&quot;, b);
-    fprintf(stderr, &quot;第三个 malloc(8): %p\n&quot;, c);
-
-    fprintf(stderr, &quot;free 掉第一个\n&quot;);
-    free(a);
-
-    fprintf(stderr, &quot;当我们再次 free %p 的时候, 程序将会崩溃因为 %p 在 free 链表的第一个位置上\n&quot;, a, a);
-    // free(a);
-    fprintf(stderr, &quot;我们先 free %p.\n&quot;, b);
-    free(b);
-
-    fprintf(stderr, &quot;现在我们就可以再次 free %p 了, 因为他现在不在 free 链表的第一个位置上\n&quot;, a);
-    free(a);
-    fprintf(stderr, &quot;现在空闲链表是这样的 [ %p, %p, %p ]. 如果我们 malloc 三次, 我们会得到两次 %p \n&quot;, a, b, a, a);
-    
-    char* d = malloc(8);
-    char* e = malloc(8);
-    char* f = malloc(8);
-    strcpy(d, &quot;DDDDDDD&quot;);
-    strcpy(e, &quot;EEEEEEE&quot;);
-    strcpy(f, &quot;FFFFFFF&quot;);
-    fprintf(stderr, &quot;第一次 malloc(8): %p\n&quot;, d);
-    fprintf(stderr, &quot;第二次 malloc(8): %p\n&quot;, e);
-    fprintf(stderr, &quot;第三次 malloc(8): %p\n&quot;, f);
-&#125;
-</code></pre>
-<p>因为申请的内存较小，<code>free</code> 时 <code>a</code> 和 <code>b</code> 都会被放在 <strong>fast bin</strong> 中。</p>
-<p>现在，<code>a</code> 在 <strong>fast bin</strong> 的顶端，我们直接再次 <code>free(a)</code> 时程序会崩溃，但只要先 <code>free(b)</code> 再 <code>free(a)</code>，就能在 <strong>fast bin</strong> 中形成 <code>a -&gt; b -&gt; a</code> 的循环链表结构，此后的第一次和第三次 <code>malloc(0x20)</code>，都会返回 <code>a</code> 的地址。</p>
-<p>当我第一次 malloc 申请到 a ，并通过修改 a 的内容，如改为 0xdeadbeef，那么由于 a 仍在 fastbin 上，并且 <strong>fd 与 data 的位置重合</strong>，那么 fastbin 链将会改为 <code>b -&gt; a -&gt; (0xdeadbeef)</code>。再 <code>malloc</code> 三次，我们便得到了位于 0xdeadbeef 的“堆”，因为它可供我们修改，就此实现了任意地址写入。</p>
-<pre><code>当 a = malloc(0x8), b = malloc(0x8)，free 后它们和 0xdeadbeef 都会进入 fastbin 的 [0x20] 处的链表，
-并不会对 0xdeadbeef 处的“堆”进行 size == 0x20? 的检查。
-</code></pre>
-<p>值得一提的是，在高版本的 glibc 2.32 中，会出现内存中的 <code>fd</code> 与实际连接的 <code>fd</code> 不一致的情况，这是因为引入了 <strong>safe-linking</strong> 机制。</p>
-<p>加密公式：</p>
-<pre><code>stored_fd = actual_fd ^ (chunk_addr &gt;&gt; 12)
-</code></pre>
-<p>解密公式：</p>
-<pre><code>actual_fd = stored_fd ^ (chunk_addr &gt;&gt; 12)
-</code></pre>
-<p>当 bin 中只含一个堆时，由于 <code>actual_fd = 0</code>，内存上的 <code>stored_fd</code><br>即 <code>chunk_addr &gt;&gt; 12</code>。可以这样处理 <strong>safe-linking</strong> 机制。</p>
-<p>此外，由于 glibc 2.26 引入了 <strong>tcache</strong>， <code>free</code> 会优先放入 <strong>tcache</strong>，而 <strong>tcache</strong> 会遍历整个链表进行检查，使得 <strong>tcache</strong> 上面的 <strong>double free</strong> 失效。它的绕过我们以后再说，暂时先在 <strong>gdb</strong> 时输入该指令，令 <strong>tcache</strong> 容纳量为 0 吧。（其实所谓绕过就和这个类似^_^）</p>
-<pre><code class="bash">gdb fastbin_dup
-pwndbg&gt; set environment GLIBC_TUNABLES=glibc.malloc.tcache_count=0
-pwndbg&gt; b main
-pwndbg&gt; r
-</code></pre>
-<h2 id="free-hook"><a href="#free-hook" class="headerlink" title="__free_hook"></a>__free_hook</h2><p>当程序执行 <code>free</code> 函数时，会检查 <strong>__free_hook</strong> 的值是否为 0。当不为 0 时，就会直接跳转到 <strong>__free_hook</strong> 内的地址继续往下执行。</p>
-<p>double free 修改 <strong>__free_hook</strong> 的内容为 system_addr，执行 <code>free(&quot;\bin\sh&quot;)</code> 时，恰好使 <code>rdi = &amp;&quot;\bin\sh&quot;</code>， 就能打通了。</p>
-<pre><code class="c">//double free, __free_hook = system_addr
-void *a = malloc(0x20);
-strcpy(a,&quot;\bin\sh&quot;);
-free(a);
-//now we get shell :)
-</code></pre>
-<p>ps: <strong>__free_hook</strong> 在 glibc 2.34 移除了……</p>
-<h2 id="堆溢出-Fake-Chunk"><a href="#堆溢出-Fake-Chunk" class="headerlink" title="堆溢出 + Fake Chunk"></a>堆溢出 + Fake Chunk</h2><p>当程序不进行边界检查时，可以利用堆溢出。</p>
-<p>因为堆的分配是相邻的，了解堆的基本组成后，我们可以制作 <strong>fake chunk</strong>，利用堆溢出修改下一个堆的 fd(next)，此后第二次 <code>malloc</code> 的时候就会返回我们覆盖的地址，从而实现任意地址写入。</p>
-<p>最基本的攻击思路如下：堆溢出给下一个 Free 掉的堆写入 __free_hook 地址，使它变为 Fake Chunk。 -&gt; malloc 到 Fake Chunk，修改__free_hook -&gt; malloc 新堆，填入”\bin\sh” -&gt; free 这个新堆。</p>
-<p>现在只需要获取到 <strong>Free hook</strong> 的地址就行了。</p>
-<h2 id="泄露-Free-hook-地址"><a href="#泄露-Free-hook-地址" class="headerlink" title="泄露 Free hook 地址"></a>泄露 Free hook 地址</h2><p>当 unsorted bin 中只含一个 free 掉的堆时，其 fd 和 bk 指针都会指向 main_arena 的地址，如果我们有程序使用的 libc.so.6，可以由此计算得出 libc 基地址和 __free_hook 的地址。</p>
+            <p>别样的pwnpwn车大战之 chunk chunk base.</p>
 
             
         </div>
@@ -318,54 +213,11 @@ free(a);
         
         <span class="tag">
             
-            <a href="/tags/heap-pwn/" style="color: #ff7d73">heap pwn</a>
+            <a href="/tags/heap-pwn/" style="color: #03a9f4">-heap -pwn</a>
         </span>
         
     </div>
     <a href="/2025/06/27/pwn-%E5%A0%86%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" class="go-post">阅读全文</a>
-</div>
-
-<div class="post">
-    <a href="/2025/06/27/hello-world/">
-        <h2 class="post-title">Hello World</h2>
-    </a>
-    <div class="category-and-date">
-        
-        <span class="date">
-            <span class="icon">
-                <i class="fa-solid fa-calendar fa-fw"></i>
-            </span>
-            2025/6/27
-        </span>
-        
-        
-    </div>
-    <div class="description">
-        <div class="content" v-pre>
-            
-            <p>Welcome to <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a target="_blank" rel="noopener" href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a target="_blank" rel="noopener" href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a target="_blank" rel="noopener" href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><pre><code class="bash">$ hexo new &quot;My New Post&quot;
-</code></pre>
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><pre><code class="bash">$ hexo server
-</code></pre>
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><pre><code class="bash">$ hexo generate
-</code></pre>
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><pre><code class="bash">$ hexo deploy
-</code></pre>
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
-
-            
-        </div>
-    </div>
-    <div class="post-tags">
-        
-        
-        
-    </div>
-    <a href="/2025/06/27/hello-world/" class="go-post">阅读全文</a>
 </div>
 
 
@@ -386,20 +238,12 @@ free(a);
         <div class="avatar">
             <img src="/images/avatar.jpg" alt="avatar" />
         </div>
-        <div class="name">John Doe</div>
+        <div class="name">Kanade</div>
         <div class="description">
             <p>Description<br>…</p>
 
         </div>
         
-        
-        <div class="friend-links">
-            
-            <div class="friend-link">
-                <a target="_blank" rel="noopener" href="https://argvchs.github.io">Argvchs</a>
-            </div>
-            
-        </div>
         
     </div>
 </div>
@@ -416,7 +260,7 @@ free(a);
             <span id="footer-icon">
                 <i class="fa-solid fa-font-awesome fa-fw"></i>
             </span>
-            &commat;John Doe
+            &commat;Kanade
         </div>
         <div>
             Based on the <a target="_blank" rel="noopener" href="https://hexo.io">Hexo Engine</a> &amp;
