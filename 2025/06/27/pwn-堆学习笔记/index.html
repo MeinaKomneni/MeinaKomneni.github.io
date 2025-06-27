@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>pwn-堆学习笔记 | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="Chunkchunk 一般结构如下（地址从低到高）： malloc 时： 1234567+---------------+ ← chunk起始地址|   prev_size   | 前一个 free chunk 的大小+---------------+ |     size      | 分配的内存大小+---------------+ &lt;-malloc返回的地址|     data">
+<meta property="og:type" content="article">
+<meta property="og:title" content="pwn-堆学习笔记">
+<meta property="og:url" content="http://example.com/2025/06/27/pwn-%E5%A0%86%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Chunkchunk 一般结构如下（地址从低到高）： malloc 时： 1234567+---------------+ ← chunk起始地址|   prev_size   | 前一个 free chunk 的大小+---------------+ |     size      | 分配的内存大小+---------------+ &lt;-malloc返回的地址|     data">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2025-06-27T12:34:45.000Z">
+<meta property="article:modified_time" content="2025-06-27T12:38:43.363Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="heap pwn">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.2.0/css/fork-awesome.min.css">
+
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-pwn-堆学习笔记" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2025/06/27/pwn-%E5%A0%86%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" class="article-date">
+  <time class="dt-published" datetime="2025-06-27T12:34:45.000Z" itemprop="datePublished">2025-06-27</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      pwn-堆学习笔记
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="Chunk"><a href="#Chunk" class="headerlink" title="Chunk"></a>Chunk</h2><p>chunk 一般结构如下（地址从低到高）：</p>
+<p><code>malloc</code> 时：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">+---------------+ ← chunk起始地址</span><br><span class="line">|   prev_size   | 前一个 free chunk 的大小</span><br><span class="line">+---------------+ </span><br><span class="line">|     size      | 分配的内存大小</span><br><span class="line">+---------------+ &lt;-malloc返回的地址</span><br><span class="line">|     data      | </span><br><span class="line">+---------------+</span><br></pre></td></tr></table></figure>
+
+<p><code>free</code> 后：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">+---------------+ ← chunk起始地址</span><br><span class="line">|   prev_size   | 前一个 free chunk 的大小</span><br><span class="line">+---------------+ </span><br><span class="line">|     size      | 分配的内存大小</span><br><span class="line">+---------------+</span><br><span class="line">|    fd(next)   | 指向链表下一个空闲 chunk (previous free chunk)</span><br><span class="line">+---------------+</span><br><span class="line">|    bk(prev)   | 指向链表上一个空闲 chunk (next free chunk)，若在 fast bin 中则不使用。</span><br><span class="line">+---------------+</span><br></pre></td></tr></table></figure>
+
+<p><strong>可见 fd 与 data 的位置是重合的</strong>。因此配合 <strong>Double Free</strong>，可以任意地址写入。</p>
+<h2 id="Unsorted-Bin"><a href="#Unsorted-Bin" class="headerlink" title="Unsorted Bin"></a>Unsorted Bin</h2><p>存储 <code>free</code> 了的 <strong>chunk</strong> 的地址，<br>是一个双向链表，所以同时使用 <strong>chunk</strong> 的 <code>fd</code> 和 <code>bk</code> 指针维护链表关系，存在检查：<code>p-&gt;fd-&gt;bk == p</code> 和 <code>p-&gt;bk-&gt;fd == p</code>。</p>
+<p>采用先进先出原则。</p>
+<h2 id="Fast-Bin"><a href="#Fast-Bin" class="headerlink" title="Fast Bin"></a>Fast Bin</h2><p>当 <strong>chunk</strong> 满足：<br>$$ size &lt; \text{0x80} $$<br><code>free</code> 后，它的地址会被放入 <strong>fast bin</strong> 中，采用先进后出原则。</p>
+<p><code>malloc</code> 的分配方式为地址从低到高，并且优先采用在 <strong>fast bin</strong> 或 <strong>unsorted bin</strong> 中已经 <code>free</code> 的堆块。所以我们可以利用 <strong>fast bin</strong> 或 <strong>unsorted bin</strong> 的特性来控制下一次 <code>malloc</code> 返回的地址。</p>
+<h2 id="Double-Free"><a href="#Double-Free" class="headerlink" title="Double Free"></a>Double Free</h2><p>引自：<a target="_blank" rel="noopener" href="https://wiki.wgpsec.org/knowledge/ctf/how2heap.html">Link</a></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;malloc.h&gt;</span></span></span><br><span class="line"><span class="comment">//gcc -g fastbin_dup.c -o fastbin_dup</span></span><br><span class="line"><span class="comment">//pwndbg&gt; set environment GLIBC_TUNABLES=glibc.malloc.tcache_count=0</span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;这个例子演示了 fastbin 的 double free\n&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;首先申请了 3 个 chunk\n&quot;</span>);</span><br><span class="line">    <span class="type">char</span>* a = <span class="built_in">malloc</span>(<span class="number">8</span>);</span><br><span class="line">    <span class="built_in">strcpy</span>(a, <span class="string">&quot;AAAAAAA&quot;</span>);</span><br><span class="line">    <span class="type">char</span>* b = <span class="built_in">malloc</span>(<span class="number">8</span>);</span><br><span class="line">    <span class="built_in">strcpy</span>(b, <span class="string">&quot;BBBBBBB&quot;</span>);</span><br><span class="line">    <span class="type">char</span>* c = <span class="built_in">malloc</span>(<span class="number">8</span>);</span><br><span class="line">    <span class="built_in">strcpy</span>(c, <span class="string">&quot;CCCCCCC&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;第一个 malloc(8): %p\n&quot;</span>, a);</span><br><span class="line">    <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;第二个 malloc(8): %p\n&quot;</span>, b);</span><br><span class="line">    <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;第三个 malloc(8): %p\n&quot;</span>, c);</span><br><span class="line"></span><br><span class="line">    <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;free 掉第一个\n&quot;</span>);</span><br><span class="line">    <span class="built_in">free</span>(a);</span><br><span class="line"></span><br><span class="line">    <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;当我们再次 free %p 的时候, 程序将会崩溃因为 %p 在 free 链表的第一个位置上\n&quot;</span>, a, a);</span><br><span class="line">    <span class="comment">// free(a);</span></span><br><span class="line">    <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;我们先 free %p.\n&quot;</span>, b);</span><br><span class="line">    <span class="built_in">free</span>(b);</span><br><span class="line"></span><br><span class="line">    <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;现在我们就可以再次 free %p 了, 因为他现在不在 free 链表的第一个位置上\n&quot;</span>, a);</span><br><span class="line">    <span class="built_in">free</span>(a);</span><br><span class="line">    <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;现在空闲链表是这样的 [ %p, %p, %p ]. 如果我们 malloc 三次, 我们会得到两次 %p \n&quot;</span>, a, b, a, a);</span><br><span class="line">    </span><br><span class="line">    <span class="type">char</span>* d = <span class="built_in">malloc</span>(<span class="number">8</span>);</span><br><span class="line">    <span class="type">char</span>* e = <span class="built_in">malloc</span>(<span class="number">8</span>);</span><br><span class="line">    <span class="type">char</span>* f = <span class="built_in">malloc</span>(<span class="number">8</span>);</span><br><span class="line">    <span class="built_in">strcpy</span>(d, <span class="string">&quot;DDDDDDD&quot;</span>);</span><br><span class="line">    <span class="built_in">strcpy</span>(e, <span class="string">&quot;EEEEEEE&quot;</span>);</span><br><span class="line">    <span class="built_in">strcpy</span>(f, <span class="string">&quot;FFFFFFF&quot;</span>);</span><br><span class="line">    <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;第一次 malloc(8): %p\n&quot;</span>, d);</span><br><span class="line">    <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;第二次 malloc(8): %p\n&quot;</span>, e);</span><br><span class="line">    <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;第三次 malloc(8): %p\n&quot;</span>, f);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>因为申请的内存较小，<code>free</code> 时 <code>a</code> 和 <code>b</code> 都会被放在 <strong>fast bin</strong> 中。</p>
+<p>现在，<code>a</code> 在 <strong>fast bin</strong> 的顶端，我们直接再次 <code>free(a)</code> 时程序会崩溃，但只要先 <code>free(b)</code> 再 <code>free(a)</code>，就能在 <strong>fast bin</strong> 中形成 <code>a -&gt; b -&gt; a</code> 的循环链表结构，此后的第一次和第三次 <code>malloc(0x20)</code>，都会返回 <code>a</code> 的地址。</p>
+<p>当我第一次 malloc 申请到 a ，并通过修改 a 的内容，如改为 0xdeadbeef，那么由于 a 仍在 fastbin 上，并且 <strong>fd 与 data 的位置重合</strong>，那么 fastbin 链将会改为 <code>b -&gt; a -&gt; (0xdeadbeef)</code>。再 <code>malloc</code> 三次，我们便得到了位于 0xdeadbeef 的“堆”，因为它可供我们修改，就此实现了任意地址写入。</p>
+<pre><code>当 a = malloc(0x8), b = malloc(0x8)，free 后它们和 0xdeadbeef 都会进入 fastbin 的 [0x20] 处的链表，
+并不会对 0xdeadbeef 处的“堆”进行 size == 0x20? 的检查。
+</code></pre>
+<p>值得一提的是，在高版本的 glibc 2.32 中，会出现内存中的 <code>fd</code> 与实际连接的 <code>fd</code> 不一致的情况，这是因为引入了 <strong>safe-linking</strong> 机制。</p>
+<p>加密公式：</p>
+<pre><code>stored_fd = actual_fd ^ (chunk_addr &gt;&gt; 12)
+</code></pre>
+<p>解密公式：</p>
+<pre><code>actual_fd = stored_fd ^ (chunk_addr &gt;&gt; 12)
+</code></pre>
+<p>当 bin 中只含一个堆时，由于 <code>actual_fd = 0</code>，内存上的 <code>stored_fd</code><br>即 <code>chunk_addr &gt;&gt; 12</code>。可以这样处理 <strong>safe-linking</strong> 机制。</p>
+<p>此外，由于 glibc 2.26 引入了 <strong>tcache</strong>， <code>free</code> 会优先放入 <strong>tcache</strong>，而 <strong>tcache</strong> 会遍历整个链表进行检查，使得 <strong>tcache</strong> 上面的 <strong>double free</strong> 失效。它的绕过我们以后再说，暂时先在 <strong>gdb</strong> 时输入该指令，令 <strong>tcache</strong> 容纳量为 0 吧。（其实所谓绕过就和这个类似^_^）</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">gdb fastbin_dup</span><br><span class="line">pwndbg&gt; <span class="built_in">set</span> environment GLIBC_TUNABLES=glibc.malloc.tcache_count=0</span><br><span class="line">pwndbg&gt; b main</span><br><span class="line">pwndbg&gt; r</span><br></pre></td></tr></table></figure>
+
+<h2 id="free-hook"><a href="#free-hook" class="headerlink" title="__free_hook"></a>__free_hook</h2><p>当程序执行 <code>free</code> 函数时，会检查 <strong>__free_hook</strong> 的值是否为 0。当不为 0 时，就会直接跳转到 <strong>__free_hook</strong> 内的地址继续往下执行。</p>
+<p>double free 修改 <strong>__free_hook</strong> 的内容为 system_addr，执行 <code>free(&quot;\bin\sh&quot;)</code> 时，恰好使 <code>rdi = &amp;&quot;\bin\sh&quot;</code>， 就能打通了。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//double free, __free_hook = system_addr</span></span><br><span class="line"><span class="type">void</span> *a = <span class="built_in">malloc</span>(<span class="number">0x20</span>);</span><br><span class="line"><span class="built_in">strcpy</span>(a,<span class="string">&quot;\bin\sh&quot;</span>);</span><br><span class="line"><span class="built_in">free</span>(a);</span><br><span class="line"><span class="comment">//now we get shell :)</span></span><br></pre></td></tr></table></figure>
+<p>ps: <strong>__free_hook</strong> 在 glibc 2.34 移除了……</p>
+<h2 id="堆溢出-Fake-Chunk"><a href="#堆溢出-Fake-Chunk" class="headerlink" title="堆溢出 + Fake Chunk"></a>堆溢出 + Fake Chunk</h2><p>当程序不进行边界检查时，可以利用堆溢出。</p>
+<p>因为堆的分配是相邻的，了解堆的基本组成后，我们可以制作 <strong>fake chunk</strong>，利用堆溢出修改下一个堆的 fd(next)，此后第二次 <code>malloc</code> 的时候就会返回我们覆盖的地址，从而实现任意地址写入。</p>
+<p>最基本的攻击思路如下：堆溢出给下一个 Free 掉的堆写入 __free_hook 地址，使它变为 Fake Chunk。 -&gt; malloc 到 Fake Chunk，修改__free_hook -&gt; malloc 新堆，填入”\bin\sh” -&gt; free 这个新堆。</p>
+<p>现在只需要获取到 <strong>Free hook</strong> 的地址就行了。</p>
+<h2 id="泄露-Free-hook-地址"><a href="#泄露-Free-hook-地址" class="headerlink" title="泄露 Free hook 地址"></a>泄露 Free hook 地址</h2><p>当 unsorted bin 中只含一个 free 掉的堆时，其 fd 和 bk 指针都会指向 main_arena 的地址，如果我们有程序使用的 libc.so.6，可以由此计算得出 libc 基地址和 __free_hook 的地址。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2025/06/27/pwn-%E5%A0%86%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" data-id="cmceswwha0000a0r3g3bdcknl" data-title="pwn-堆学习笔记" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/heap-pwn/" rel="tag">heap pwn</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2025/06/27/hello-world/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Hello World</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/heap-pwn/" rel="tag">heap pwn</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/heap-pwn/" style="font-size: 10px;">heap pwn</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/06/">June 2025</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2025/06/27/pwn-%E5%A0%86%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">pwn-堆学习笔记</a>
+          </li>
+        
+          <li>
+            <a href="/2025/06/27/hello-world/">Hello World</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2025 John Doe<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>
