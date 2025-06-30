@@ -181,14 +181,14 @@
             
             <span class="tag">
                 
-                <a href="/tags/pwn/" style="color: #ffa2c4">
+                <a href="/tags/pwn/" style="color: #00bcd4">
                     pwn
                 </a>
             </span>
             
             <span class="tag">
                 
-                <a href="/tags/heap/" style="color: #00bcd4">
+                <a href="/tags/heap/" style="color: #00a596">
                     heap
                 </a>
             </span>
@@ -198,7 +198,148 @@
     </div>
     
     <div class="content" v-pre>
-        
+        <h2 id="malloc-state"><a href="#malloc-state" class="headerlink" title="malloc_state"></a>malloc_state</h2><p>当我们在 pwndbg 中 p main_arena，打印的东西好像就是这个。</p>
+<pre><code class="c">struct malloc_state
+&#123;
+  /* Serialize access.  */
+  __libc_lock_define (, mutex);
+
+  /* Flags (formerly in max_fast).  */
+  int flags;
+
+  /* Set if the fastbin chunks contain recently inserted free blocks.  */
+  /* Note this is a bool but not all targets support atomics on booleans.  */
+  int have_fastchunks;
+
+  /* Fastbins */
+  mfastbinptr fastbinsY[NFASTBINS];
+
+  /* Base of the topmost chunk -- not otherwise kept in a bin */
+  mchunkptr top;
+
+  /* The remainder from the most recent split of a small request */
+  mchunkptr last_remainder;
+
+  /* Normal bins packed as described above */
+  mchunkptr bins[NBINS * 2 - 2];
+
+  /* Bitmap of bins */
+  unsigned int binmap[BINMAPSIZE];
+
+  /* Linked list */
+  struct malloc_state *next;
+
+  /* Linked list for free arenas.  Access to this field is serialized
+     by free_list_lock in arena.c.  */
+  struct malloc_state *next_free;
+
+  /* Number of threads attached to this arena.  0 if the arena is on
+     the free list.  Access to this field is serialized by
+     free_list_lock in arena.c.  */
+  INTERNAL_SIZE_T attached_threads;
+
+  /* Memory allocated from the system in this arena.  */
+  INTERNAL_SIZE_T system_mem;
+  INTERNAL_SIZE_T max_system_mem;
+&#125;;
+</code></pre>
+<p>其中最常用的大概是 top，因为在打 house of orange 的时候，pwndbg 的 heap 指令会看不到 top_chunk，不过改 heap 显示的最后一个 chunk 的 size 也能解决。</p>
+<pre><code>__libc_lock_define (, mutex);
+</code></pre>
+<p>这个函数是给 arena 加锁，保护多线程下的并发访问。对 pwn 来说不重要；</p>
+<p>flags 存储 arena 的状态，对 pwn 来说不重要；</p>
+<p>have_fastchunks 表示 fastbin 内 是否有 free chunk；</p>
+<p>fastbinsY 数组中，不同的索引表示不同的大小，fastbin[i] 表示索引 i 对应的链表表头。</p>
+<p>top 存储 top_chunk 所在地址。</p>
+<p>last_remainder 指向最近一次小块分割后的剩余部分的首地址。</p>
+<p>bins 存储各种大小的空闲 chunk。</p>
+<pre><code>Small bins (2-63)：固定大小的块
+Large bins (64-126)：按大小范围分组的块
+Unsorted bin (1)：临时存放刚释放的块
+</code></pre>
+<p>binmap 标识哪些 bin 非空。</p>
+<p>剩下的大概都是和线程有关的，对 pwn 应该不重要。</p>
+<p>接下来正式开始 malloc。</p>
+<h2 id="libc-malloc"><a href="#libc-malloc" class="headerlink" title="__libc_malloc"></a>__libc_malloc</h2><pre><code class="c">#if IS_IN (libc)  /*当为 libc.so 编译时，IS_IN (libc) 为真*/
+void *
+__libc_malloc (size_t bytes) /*bytes 就是我们的输入*/
+&#123;
+  mstate ar_ptr; /*mstate 等同于之前提的 malloc_state，应该可以当做 main_arena 理解。*/
+  void *victim; /*受害者，也就是最后返回的地址*/
+
+  _Static_assert (PTRDIFF_MAX &lt;= SIZE_MAX / 2,
+                  &quot;PTRDIFF_MAX is not more than half of SIZE_MAX&quot;); /*确保系统的数据类型满足要求，对 pwn 不重要。*/
+
+  if (!__malloc_initialized)
+    ptmalloc_init ();   /*如果未初始化就进行初始化，对 pwn 不重要。*/
+#if USE_TCACHE
+  /* int_free also calls request2size, be careful to not pad twice.  */
+  size_t tbytes;
+  if (!checked_request2size (bytes, &amp;tbytes)) /*检查请求大小是否超过PTRDIFF_MAX，事实上即使是&#39;0xff&#39;*16也不会超过。对 pwn 不重要。*/
+  /**/
+    &#123;
+      __set_errno (ENOMEM);
+      return NULL;
+    &#125;
+  size_t tc_idx = csize2tidx (tbytes); /*将申请的大小转化为索引，下面会对索引进行检查，太大就不会使用tcache。*/
+
+  MAYBE_INIT_TCACHE ();     /*尝试初始化tcache*/
+
+  DIAG_PUSH_NEEDS_COMMENT;
+  if (tc_idx &lt; mp_.tcache_bins  /*检查大小范围*/
+      &amp;&amp; tcache     /*检查tcache是否已经初始化*/
+      &amp;&amp; tcache-&gt;counts[tc_idx] &gt; 0)    /*这里检查对应大小的tcache的计数是否大于0。*/
+    &#123;
+      victim = tcache_get (tc_idx); /*进入 tcache_get 函数获取 victim*/
+      return tag_new_usable (victim); /*第一处返回点*/
+    &#125;
+  DIAG_POP_NEEDS_COMMENT;
+#endif
+
+  if (SINGLE_THREAD_P)
+    &#123;
+      victim = tag_new_usable (_int_malloc (&amp;main_arena, bytes));
+      assert (!victim || chunk_is_mmapped (mem2chunk (victim)) ||
+          &amp;main_arena == arena_for_chunk (mem2chunk (victim)));
+      return victim;
+    &#125;
+
+  arena_get (ar_ptr, bytes);
+
+  victim = _int_malloc (ar_ptr, bytes);
+  /* Retry with another arena only if we were able to find a usable arena
+     before.  */
+  if (!victim &amp;&amp; ar_ptr != NULL)
+    &#123;
+      LIBC_PROBE (memory_malloc_retry, 1, bytes);
+      ar_ptr = arena_get_retry (ar_ptr, bytes);
+      victim = _int_malloc (ar_ptr, bytes);
+    &#125;
+
+  if (ar_ptr != NULL)
+    __libc_lock_unlock (ar_ptr-&gt;mutex);
+
+  victim = tag_new_usable (victim);
+
+  assert (!victim || chunk_is_mmapped (mem2chunk (victim)) ||
+          ar_ptr == arena_for_chunk (mem2chunk (victim)));
+  return victim;
+&#125;
+libc_hidden_def (__libc_malloc)
+</code></pre>
+<p>先跳转阅读 tcache_get 函数：</p>
+<h2 id="tcache-get"><a href="#tcache-get" class="headerlink" title="tcache_get"></a>tcache_get</h2><pre><code class="c">tcache_get (size_t tc_idx)
+&#123;
+  tcache_entry *e = tcache-&gt;entries[tc_idx];
+  if (__glibc_unlikely (!aligned_OK (e)))
+    malloc_printerr (&quot;malloc(): unaligned tcache chunk detected&quot;);
+  tcache-&gt;entries[tc_idx] = REVEAL_PTR (e-&gt;next);
+  --(tcache-&gt;counts[tc_idx]);   /*可以得知，就是这个计数，导致只含一个 tcache chunk 时，改写其 next 不会起作用。处理方法也很简单：再给 tcache 塞一个 chunk 即可。*/
+  e-&gt;key = 0;
+  return (void *) e;
+&#125;
+</code></pre>
+
     </div>
     
     
