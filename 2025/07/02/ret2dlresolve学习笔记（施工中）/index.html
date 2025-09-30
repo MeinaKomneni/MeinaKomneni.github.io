@@ -181,14 +181,14 @@
             
             <span class="tag">
                 
-                <a href="/tags/pwn/" style="color: #ff7d73">
+                <a href="/tags/pwn/" style="color: #ffa2c4">
                     pwn
                 </a>
             </span>
             
             <span class="tag">
                 
-                <a href="/tags/rop/" style="color: #00bcd4">
+                <a href="/tags/rop/" style="color: #ff7d73">
                     rop
                 </a>
             </span>
@@ -199,36 +199,47 @@
     
     <div class="content" v-pre>
         <p>直接上题：</p>
-<p><img src="/image-1.png" alt="alt text"></p>
+
+
 <p>好大的栈溢出……</p>
-<p><img src="/image-2.png" alt="alt text"></p>
+
+
 <p>还有 backdoor。</p>
-<p><img src="/image.png" alt="alt text"></p>
+
+
+
 <p>先溢出到 backdoor 观察一下先。</p>
 <pre><code class="py">payload = b&#39;a&#39;*0x68 + p64(backdoor)
 p.send(payload)
 </code></pre>
-<p><img src="/image-4.png" alt="alt text"></p>
+
+
 <p>注意是 <code>si</code> 单步进入。</p>
-<p><img src="/image-3.png" alt="alt text"></p>
+
+
 <p>可以看见跳转到了 0x7df595569d30。</p>
 <p>x&#x2F;40i：</p>
-<p><img src="/image-5.png" alt="alt text"></p>
+
+
 <p>vmmap 查看，鉴定为来自 ld，gdb 暂时无法解析。查看 0x401000：</p>
-<p><img src="/image-6.png" alt="alt text"></p>
+
+
 <p>注意到它们 jmp 的相同，但 push 的不同；所有的函数最后都 push [rip + 0x2302]，然后 jmp [rip + 0x2303]   &lt;0x7df595569d30&gt;；</p>
 <p>在经过这个神必函数后，@got.plt被填上相应libc的地址，下次调用直接跳转：</p>
-<p><img src="/image-7.png" alt="alt text"></p>
+
+
 <p>所以可以得知，我们的 payload 在 padding 后面加上 p64(0x401020) + p64(0x2)，就会执行 exit。</p>
 <p>试试：</p>
 <pre><code class="py">payload = b&#39;a&#39;*0x68 + p64(wtf) + p64(0x2)
 p.send(payload)
 </code></pre>
 <p>确实如此：</p>
-<p><img src="/image-8.png" alt="alt text"></p>
+
+
 <p>试试把 0x2 换成 0x3：</p>
 <p>程序崩了：</p>
-<p><img src="/image-9.png" alt="alt text"></p>
+
+
 <p>查询资料可知，之前的神必函数叫做 _dl_runtime_resolve，然后这个报错是因为<br>_dl_runtime_resolve 调用了 _dl_fixup，里面有一句：</p>
 <pre><code class="c">_dl_fixup(struct link_map *l,ElfW(Word) reloc_arg)
 /*......*/
@@ -238,13 +249,16 @@ assert(ELF(R_TYPE)(reloc-&gt;info) == ELF_MACHINE_JMP_SLOT);
 <p>Elf64_Word 就是整数，就是我们传入的 0x3。</p>
 <p>那么前面的 struct link_map 就很有意思了，这就是需要我们构造的贵物，查看资料得知在调用 dl_runtime_resolve 前就已经传入。</p>
 <p>众所周知第一个参数在 rdi 上，我们跟进神必函数。</p>
-<p><img src="/image-10.png" alt="alt text"></p>
+
+
 <p>从 rbx 的偏移中读取数值，其中就有我们传入的 0x2。</p>
-<p><img src="/image-11.png" alt="alt text"></p>
+
+
 <p>这也意味着有个关键的东西 (struct link_map) 也被 push 了进去，重开再观察一次。</p>
 <p>[rip + 0x2302] 就是我们要找的 link_map; </p>
 <p>dl_runtime_resolve 的反汇编中，rsp 传给了 rbx：</p>
-<p><img src="/image-12.png" alt="alt text"></p>
+
+
 <p>因此，我们的 payload 可以变为：</p>
 <pre><code class="py">fake_link_map_addr = 0x0 # 因为不知道在 stack 上怎么伪造，所以需要 stack pivot 把输入搞到地址确定的 .bss 上.
 enter = 0x401026
