@@ -181,15 +181,15 @@
             
             <span class="tag">
                 
-                <a href="/tags/pwn/" style="color: #03a9f4">
-                    pwn
+                <a href="/tags/heap/" style="color: #ffa2c4">
+                    heap
                 </a>
             </span>
             
             <span class="tag">
                 
-                <a href="/tags/heap/" style="color: #ffa2c4">
-                    heap
+                <a href="/tags/pwn/" style="color: #ff7d73">
+                    pwn
                 </a>
             </span>
             
@@ -215,20 +215,20 @@ int main() &#123;
 gdb IO_FILE_fopen
 </code></pre>
 <p>在 main 下断点并跟踪到 fprintf(stderr, “fp is at: %p\n”, fp); 执行完毕，执行 p *fp 可以看见：</p>
-
+<img src="/2025/07/01/iofile%20%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E6%96%BD%E5%B7%A5%E4%B8%AD%EF%BC%89/image.png" class="">
 
 <p>_flags 是文件标志，暂时不知道有什么用。</p>
 <p>执行 heap，可以看到分配了一个大小为 0x1e0 的堆：</p>
+<img src="/2025/07/01/iofile%20%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E6%96%BD%E5%B7%A5%E4%B8%AD%EF%BC%89/image-1.png" class="">
 
 
-
-
+<img src="/2025/07/01/iofile%20%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E6%96%BD%E5%B7%A5%E4%B8%AD%EF%BC%89/image-3.png" class="">
 
 <p>p fp, 也可以看见它指向了：</p>
-
+<img src="/2025/07/01/iofile%20%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E6%96%BD%E5%B7%A5%E4%B8%AD%EF%BC%89/image-2.png" class="">
 
 <p>看来是和堆很像了，执行malloc(0x20)后：</p>
-
+<img src="/2025/07/01/iofile%20%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E6%96%BD%E5%B7%A5%E4%B8%AD%EF%BC%89/image-4.png" class="">
 
 <p>注意到read\write和buf的系列的值都为0x0，我们给源代码添加相应函数。</p>
 <pre><code class="c">#include&lt;stdio.h&gt;
@@ -244,24 +244,24 @@ int main() &#123;
 &#125;
 </code></pre>
 <p>执行完 fread 后，可以看见又分配了一个较大的堆：</p>
-
+<img src="/2025/07/01/iofile%20%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E6%96%BD%E5%B7%A5%E4%B8%AD%EF%BC%89/image-5.png" class="">
 
 <p>应该是 buf 的：</p>
-
+<img src="/2025/07/01/iofile%20%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E6%96%BD%E5%B7%A5%E4%B8%AD%EF%BC%89/image-6.png" class="">
 
 <p>但一般很少会有要求读取 file 的 pwn 题，io_file 更多是与堆结合。</p>
 <h2 id="iofile-之-house-of-orange"><a href="#iofile-之-house-of-orange" class="headerlink" title="iofile 之 house of orange"></a>iofile 之 house of orange</h2><p>先看管理 file 的 _IO_list_all 链表：</p>
-
+<img src="/2025/07/01/iofile%20%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E6%96%BD%E5%B7%A5%E4%B8%AD%EF%BC%89/image-7.png" class="">
 
 <p>有几个关键的：</p>
 <p>_chain 指向该链表下一个节点：</p>
-
+<img src="/2025/07/01/iofile%20%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E6%96%BD%E5%B7%A5%E4%B8%AD%EF%BC%89/image-8.png" class="">
 
 <p>查看 vtable：</p>
-
+<img src="/2025/07/01/iofile%20%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E6%96%BD%E5%B7%A5%E4%B8%AD%EF%BC%89/image-11.png" class="">
 
 <p>vtable + 3 是 _IO_OVERFLOW 函数的地址，修改它为 system 的地址，在 unsorted bin 报错的时候就可以 getshell。</p>
-
+<img src="/2025/07/01/iofile%20%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E6%96%BD%E5%B7%A5%E4%B8%AD%EF%BC%89/image-12.png" class="">
 
 
 <pre><code>unsorted bin 中错误的fd/bk指针，会触发 malloc_printer 函数打印错误信息，malloc_printer 调用 __libc_message，_libc_message 调用 abort()，abort() 调用 _IO_flush_all_lockp。
@@ -269,10 +269,10 @@ int main() &#123;
 在 _IO_flush_all_lockp 中，通过对链表结构 _IO_list_all 中每个节点进行遍历，找到符合条件的节点，执行 _IO_OVERWRITE 函数，其中特点是 _ IO_FILE_PLUS 类型的结构体，对函数的查找需要通过 vtable 定位函数表。如果我们可以劫持 IO 表中的 _IO_OVERFLOW 就可以 getshell。
 </code></pre>
 <p>可以看见 _IO_FILE_plus 就是在堆上：</p>
-
+<img src="/2025/07/01/iofile%20%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E6%96%BD%E5%B7%A5%E4%B8%AD%EF%BC%89/image-9.png" class="">
 
 <p>打印一波：</p>
-
+<img src="/2025/07/01/iofile%20%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%EF%BC%88%E6%96%BD%E5%B7%A5%E4%B8%AD%EF%BC%89/image-10.png" class="">
 
 <p>计算可知 28 个 p64 构成一个 _IO_FILE_plus 结构体。</p>
 <p>一个简单的利用就是伪造一个 _IO_FILE_plus 结构体，然后把它连接在 _IO_list_all 上。在结构体中，把 vtable 指向一个可控的地址，这个地址 +3 写入 system_addr。</p>
