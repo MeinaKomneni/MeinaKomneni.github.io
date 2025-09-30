@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8" />
-    <title>懒人工具cpwn使用笔记 | Erik_Aoi</title>
+    <title>Tags: rop | Erik_Aoi</title>
     <meta name="author" content="Kanade" />
     <meta name="description" content="" />
     <meta name="keywords" content="" />
@@ -42,10 +42,6 @@
 
 
 <script src="/js/lib/preview.js"></script>
-
-
-
-
 
 
 
@@ -160,76 +156,94 @@
 
         <div id="main" :class="loading ? 'into-enter-from': 'into-enter-active'">
 
-            <div class="article">
-    <div>
-        <h1>懒人工具cpwn使用笔记</h1>
-    </div>
-    <div class="info">
-        <span class="date">
-            <span class="icon">
-                <i class="fa-solid fa-calendar fa-fw"></i>
-            </span>
-            2025/6/29
+            <div id="archives">
+    
+    <div class="categories-tags">
+        
+        
+        
+        <span>
+            <a href="/tags/pwn/" style="background: #03a9f4">
+                <span class="icon">
+                    <i class="fa-solid fa-tags fa-fw"></i>
+                </span>
+                pwn
+            </a>
         </span>
         
         
-        <span class="tags">
-            <span class="icon">
-                <i class="fa-solid fa-tags fa-fw"></i>
-            </span>
-            
-            
-            <span class="tag">
-                
-                <a href="/tags/pwn/" style="color: #00bcd4">
-                    pwn
-                </a>
-            </span>
-            
-            <span class="tag">
-                
-                <a href="/tags/tools/" style="color: #03a9f4">
-                    tools
-                </a>
-            </span>
-            
+        
+        <span>
+            <a href="/tags/heap/" style="background: #ff7d73">
+                <span class="icon">
+                    <i class="fa-solid fa-tags fa-fw"></i>
+                </span>
+                heap
+            </a>
         </span>
+        
+        
+        
+        <span>
+            <a href="/tags/tools/" style="background: #ffa2c4">
+                <span class="icon">
+                    <i class="fa-solid fa-tags fa-fw"></i>
+                </span>
+                tools
+            </a>
+        </span>
+        
+        
+        
+        <span>
+            <a href="/tags/rop/" style="background: linear-gradient(120deg, #9abbf7 0%, #ffbbf4 100%)">
+                <span class="icon">
+                    <i class="fa-solid fa-tags fa-fw"></i>
+                </span>
+                rop
+            </a>
+        </span>
+        
+        
+        
         
     </div>
     
-    <div class="content" v-pre>
-        <h2 id="cpwn-安装"><a href="#cpwn-安装" class="headerlink" title="cpwn 安装"></a>cpwn 安装</h2><pre><code class="bash">git clone https://github.com/GeekCmore/cpwn
-cd cpwn
-./setup.sh
-</code></pre>
-<p>然后执行fetch指令：</p>
-<pre><code class="bash">cpwn fetch
-</code></pre>
-<h2 id="cpwn-使用"><a href="#cpwn-使用" class="headerlink" title="cpwn 使用"></a>cpwn 使用</h2><p>来到你的 pwn 文件目录下，执行 init 命令：</p>
-<img src="/2025/06/29/%E6%87%92%E4%BA%BA%E5%B7%A5%E5%85%B7cpwn%E4%BD%BF%E7%94%A8%E7%AC%94%E8%AE%B0/image.png" class="">
-
-<p>看来是识别到了我要打的 pwn，直接回车确定。</p>
-<img src="/2025/06/29/%E6%87%92%E4%BA%BA%E5%B7%A5%E5%85%B7cpwn%E4%BD%BF%E7%94%A8%E7%AC%94%E8%AE%B0/image-1.png" class="">
-
-<p>自动 checksec 并提示我下载 gblic 2.35，直接回车确定。</p>
-<p>安装成功后自动 patch 和生成 exp.py：</p>
-<img src="/2025/06/29/%E6%87%92%E4%BA%BA%E5%B7%A5%E5%85%B7cpwn%E4%BD%BF%E7%94%A8%E7%AC%94%E8%AE%B0/image-2.png" class="">
-
-<p>模版都写好了：</p>
-<img src="/2025/06/29/%E6%87%92%E4%BA%BA%E5%B7%A5%E5%85%B7cpwn%E4%BD%BF%E7%94%A8%E7%AC%94%E8%AE%B0/image-3.png" class="">
-
-<p>但是没用 tmux，喜欢使用 tmux 的师傅可以补一下。</p>
-<img src="/2025/06/29/%E6%87%92%E4%BA%BA%E5%B7%A5%E5%85%B7cpwn%E4%BD%BF%E7%94%A8%E7%AC%94%E8%AE%B0/image-4.png" class="">
-
-<p>以上。</p>
-
+    <div class="timeline">
+        <div class="timeline-tail"></div>
+        <div class="timeline-content">
+            <div class="item-time">2025/7/2</div>
+            <a href="/2025/07/02/ret2dlresolve%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">
+                <h3>ret2dlresolve学习笔记</h3>
+            </a>
+            <div class="info">
+                
+                
+                <span class="tags">
+                    <span class="icon">
+                        <i class="fa-solid fa-tags fa-fw"></i>
+                    </span>
+                    
+                    
+                    <span class="tag">
+                        
+                        <a href="/tags/pwn/" style="color: #ffa2c4">
+                            pwn
+                        </a>
+                    </span>
+                    
+                    <span class="tag">
+                        
+                        <a href="/tags/rop/" style="color: #03a9f4">
+                            rop
+                        </a>
+                    </span>
+                    
+                </span>
+                
+            </div>
+        </div>
     </div>
-    
-    
-    
-    
-    
-    
     
 </div>
 
@@ -261,12 +275,6 @@ cd cpwn
         
     </div>
     <script src="/js/main.js"></script>
-    
-    
-
-
-
-
     
 </body>
 </html>
