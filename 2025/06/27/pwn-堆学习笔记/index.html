@@ -51,6 +51,9 @@
 
 
 
+
+<script src="/js/lib/toc.js"></script>
+
 <link rel="stylesheet" href="/css/main.css" />
 
 <meta name="generator" content="Hexo 7.3.0"></head>
@@ -160,42 +163,54 @@
 
         <div id="main" :class="loading ? 'into-enter-from': 'into-enter-active'">
 
-            <div class="article">
-    <div>
-        <h1>pwn-堆学习笔记</h1>
-    </div>
-    <div class="info">
-        <span class="date">
-            <span class="icon">
-                <i class="fa-solid fa-calendar fa-fw"></i>
-            </span>
-            2025/6/27
-        </span>
-        
-        
-        <span class="tags">
-            <span class="icon">
-                <i class="fa-solid fa-tags fa-fw"></i>
+            <div class="article-container">
+    
+    <aside class="toc-wrapper">
+        <div class="toc-content">
+            <div class="toc-title">
+                <i class="fa-solid fa-list"></i>
+                <span>目录</span>
+            </div>
+            <ol class="toc-list"><li class="toc-list-item toc-list-level-2"><a class="toc-list-link" href="#Chunk"><span class="toc-list-text">Chunk</span></a></li><li class="toc-list-item toc-list-level-2"><a class="toc-list-link" href="#Unsorted-Bin"><span class="toc-list-text">Unsorted Bin</span></a></li><li class="toc-list-item toc-list-level-2"><a class="toc-list-link" href="#Fast-Bin"><span class="toc-list-text">Fast Bin</span></a></li><li class="toc-list-item toc-list-level-2"><a class="toc-list-link" href="#Double-Free"><span class="toc-list-text">Double Free</span></a></li><li class="toc-list-item toc-list-level-2"><a class="toc-list-link" href="#free-hook"><span class="toc-list-text">__free_hook</span></a></li><li class="toc-list-item toc-list-level-2"><a class="toc-list-link" href="#%E5%A0%86%E6%BA%A2%E5%87%BA-Fake-Chunk"><span class="toc-list-text">堆溢出 + Fake Chunk</span></a></li><li class="toc-list-item toc-list-level-2"><a class="toc-list-link" href="#%E6%B3%84%E9%9C%B2-Free-hook-%E5%9C%B0%E5%9D%80"><span class="toc-list-text">泄露 Free hook 地址</span></a></li></ol>
+        </div>
+    </aside>
+    
+    <div class="article">
+        <div>
+            <h1>pwn-堆学习笔记</h1>
+        </div>
+        <div class="info">
+            <span class="date">
+                <span class="icon">
+                    <i class="fa-solid fa-calendar fa-fw"></i>
+                </span>
+                2025/6/27
             </span>
             
             
-            <span class="tag">
+            <span class="tags">
+                <span class="icon">
+                    <i class="fa-solid fa-tags fa-fw"></i>
+                </span>
                 
-                <a href="/tags/heap/" style="color: #00bcd4">
-                    heap
-                </a>
-            </span>
-            
-            <span class="tag">
                 
-                <a href="/tags/pwn/" style="color: #ff7d73">
-                    pwn
-                </a>
+                <span class="tag">
+                    
+                    <a href="/tags/heap/" style="color: #00bcd4">
+                        heap
+                    </a>
+                </span>
+                
+                <span class="tag">
+                    
+                    <a href="/tags/pwn/" style="color: #03a9f4">
+                        pwn
+                    </a>
+                </span>
+                
             </span>
             
-        </span>
-        
-    </div>
+        </div>
     
     <div class="content" v-pre>
         <h2 id="Chunk"><a href="#Chunk" class="headerlink" title="Chunk"></a>Chunk</h2><p>chunk 一般结构如下（地址从低到高）：</p>
@@ -313,6 +328,7 @@ free(a);
     
     
     
+    </div>
 </div>
 
             <footer id="footer">

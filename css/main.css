@@ -973,3 +973,147 @@ ol li {
         padding-left: 20px;
     }
 }
+
+/* Table of Contents Styles */
+.article-container {
+    display: flex;
+    gap: 30px;
+    margin: auto;
+    margin-top: 100px;
+    max-width: 1400px;
+    padding: 20px;
+    position: relative;
+}
+
+.toc-wrapper {
+    flex-shrink: 0;
+    height: fit-content;
+    max-height: 80vh;
+    order: 2;
+    position: sticky;
+    top: 100px;
+    width: 280px;
+}
+
+.toc-content {
+    background: #fff;
+    border: 1px solid #e1e4e8;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    max-height: 80vh;
+    overflow-y: auto;
+    padding: 20px;
+}
+
+.toc-title {
+    align-items: center;
+    border-bottom: 2px solid #e1e4e8;
+    color: #24292e;
+    display: flex;
+    font-size: 16px;
+    font-weight: 600;
+    gap: 8px;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+}
+
+.toc-title i {
+    color: #66afef;
+}
+
+.toc-list {
+    font-size: 14px;
+    line-height: 1.8;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.toc-list > .toc-item {
+    margin-bottom: 8px;
+}
+
+.toc-list .toc-item {
+    margin: 5px 0;
+    transition: all 0.2s ease;
+}
+
+.toc-list .toc-link {
+    color: #586069;
+    display: block;
+    overflow: hidden;
+    padding: 4px 8px;
+    text-decoration: none;
+    text-overflow: ellipsis;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.toc-list .toc-link:hover {
+    background: #f6f8fa;
+    border-radius: 4px;
+    color: #0366d6;
+}
+
+.toc-list .toc-link.active {
+    background: #e8f4ff;
+    border-left: 3px solid #66afef;
+    border-radius: 4px;
+    color: #0366d6;
+    font-weight: 600;
+    padding-left: 12px;
+}
+
+.toc-list .toc-child {
+    list-style: none;
+    margin-left: 15px;
+    padding-left: 0;
+}
+
+.toc-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.toc-content::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.toc-content::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.toc-content::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+.article {
+    flex: 1;
+    font-size: 15px;
+    margin-top: 0;
+    min-width: 0;
+    padding: 20px;
+}
+
+/* Responsive design for TOC */
+@media (max-width: 1200px) {
+    .article-container {
+        flex-direction: column;
+    }
+    
+    .toc-wrapper {
+        display: none;
+    }
+    
+    .article {
+        margin-top: 100px;
+        width: 100%;
+    }
+}
+
+@media (min-width: 1201px) and (max-width: 1400px) {
+    .toc-wrapper {
+        width: 240px;
+    }
+}

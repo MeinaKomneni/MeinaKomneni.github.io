@@ -51,6 +51,9 @@
 
 
 
+
+<script src="/js/lib/toc.js"></script>
+
 <link rel="stylesheet" href="/css/main.css" />
 
 <meta name="generator" content="Hexo 7.3.0"></head>
@@ -160,20 +163,32 @@
 
         <div id="main" :class="loading ? 'into-enter-from': 'into-enter-active'">
 
-            <div class="article">
-    <div>
-        <h1>关于我</h1>
-    </div>
-    <div class="info">
-        <span class="date">
-            <span class="icon">
-                <i class="fa-solid fa-calendar fa-fw"></i>
+            <div class="article-container">
+    
+    <aside class="toc-wrapper">
+        <div class="toc-content">
+            <div class="toc-title">
+                <i class="fa-solid fa-list"></i>
+                <span>目录</span>
+            </div>
+            
+        </div>
+    </aside>
+    
+    <div class="article">
+        <div>
+            <h1>关于我</h1>
+        </div>
+        <div class="info">
+            <span class="date">
+                <span class="icon">
+                    <i class="fa-solid fa-calendar fa-fw"></i>
+                </span>
+                2025/6/28
             </span>
-            2025/6/28
-        </span>
-        
-        
-    </div>
+            
+            
+        </div>
     
     <div class="content" v-pre>
         <p>曾是学oi的（我觉得我是）</p>
@@ -190,6 +205,7 @@
     
     
     
+    </div>
 </div>
 
             <footer id="footer">

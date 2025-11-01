@@ -51,6 +51,9 @@
 
 
 
+
+<script src="/js/lib/toc.js"></script>
+
 <link rel="stylesheet" href="/css/main.css" />
 
 <meta name="generator" content="Hexo 7.3.0"></head>
@@ -160,42 +163,54 @@
 
         <div id="main" :class="loading ? 'into-enter-from': 'into-enter-active'">
 
-            <div class="article">
-    <div>
-        <h1>iofile 学习笔记（施工中）</h1>
-    </div>
-    <div class="info">
-        <span class="date">
-            <span class="icon">
-                <i class="fa-solid fa-calendar fa-fw"></i>
-            </span>
-            2025/7/1
-        </span>
-        
-        
-        <span class="tags">
-            <span class="icon">
-                <i class="fa-solid fa-tags fa-fw"></i>
+            <div class="article-container">
+    
+    <aside class="toc-wrapper">
+        <div class="toc-content">
+            <div class="toc-title">
+                <i class="fa-solid fa-list"></i>
+                <span>目录</span>
+            </div>
+            <ol class="toc-list"><li class="toc-list-item toc-list-level-2"><a class="toc-list-link" href="#iofile-%E4%B9%8B-fopen"><span class="toc-list-text">iofile 之 fopen</span></a></li><li class="toc-list-item toc-list-level-2"><a class="toc-list-link" href="#iofile-%E4%B9%8B-house-of-orange"><span class="toc-list-text">iofile 之 house of orange</span></a></li></ol>
+        </div>
+    </aside>
+    
+    <div class="article">
+        <div>
+            <h1>iofile 学习笔记（施工中）</h1>
+        </div>
+        <div class="info">
+            <span class="date">
+                <span class="icon">
+                    <i class="fa-solid fa-calendar fa-fw"></i>
+                </span>
+                2025/7/1
             </span>
             
             
-            <span class="tag">
+            <span class="tags">
+                <span class="icon">
+                    <i class="fa-solid fa-tags fa-fw"></i>
+                </span>
                 
-                <a href="/tags/heap/" style="color: #ffa2c4">
-                    heap
-                </a>
-            </span>
-            
-            <span class="tag">
                 
-                <a href="/tags/pwn/" style="color: #ff7d73">
-                    pwn
-                </a>
+                <span class="tag">
+                    
+                    <a href="/tags/heap/" style="color: #00bcd4">
+                        heap
+                    </a>
+                </span>
+                
+                <span class="tag">
+                    
+                    <a href="/tags/pwn/" style="color: #00a596">
+                        pwn
+                    </a>
+                </span>
+                
             </span>
             
-        </span>
-        
-    </div>
+        </div>
     
     <div class="content" v-pre>
         <h2 id="iofile-之-fopen"><a href="#iofile-之-fopen" class="headerlink" title="iofile 之 fopen"></a>iofile 之 fopen</h2><p>自己先写一个程序玩玩：</p>
@@ -292,6 +307,7 @@ int main() &#123;
     
     
     
+    </div>
 </div>
 
             <footer id="footer">

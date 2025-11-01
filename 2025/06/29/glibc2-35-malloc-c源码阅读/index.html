@@ -51,6 +51,9 @@
 
 
 
+
+<script src="/js/lib/toc.js"></script>
+
 <link rel="stylesheet" href="/css/main.css" />
 
 <meta name="generator" content="Hexo 7.3.0"></head>
@@ -160,42 +163,54 @@
 
         <div id="main" :class="loading ? 'into-enter-from': 'into-enter-active'">
 
-            <div class="article">
-    <div>
-        <h1>glibc2.35-malloc.c源码阅读</h1>
-    </div>
-    <div class="info">
-        <span class="date">
-            <span class="icon">
-                <i class="fa-solid fa-calendar fa-fw"></i>
-            </span>
-            2025/6/29
-        </span>
-        
-        
-        <span class="tags">
-            <span class="icon">
-                <i class="fa-solid fa-tags fa-fw"></i>
+            <div class="article-container">
+    
+    <aside class="toc-wrapper">
+        <div class="toc-content">
+            <div class="toc-title">
+                <i class="fa-solid fa-list"></i>
+                <span>目录</span>
+            </div>
+            <ol class="toc-list"><li class="toc-list-item toc-list-level-2"><a class="toc-list-link" href="#malloc-state"><span class="toc-list-text">malloc_state</span></a></li><li class="toc-list-item toc-list-level-2"><a class="toc-list-link" href="#libc-malloc"><span class="toc-list-text">__libc_malloc</span></a></li><li class="toc-list-item toc-list-level-2"><a class="toc-list-link" href="#tcache-get"><span class="toc-list-text">tcache_get</span></a></li></ol>
+        </div>
+    </aside>
+    
+    <div class="article">
+        <div>
+            <h1>glibc2.35-malloc.c源码阅读</h1>
+        </div>
+        <div class="info">
+            <span class="date">
+                <span class="icon">
+                    <i class="fa-solid fa-calendar fa-fw"></i>
+                </span>
+                2025/6/29
             </span>
             
             
-            <span class="tag">
+            <span class="tags">
+                <span class="icon">
+                    <i class="fa-solid fa-tags fa-fw"></i>
+                </span>
                 
-                <a href="/tags/heap/" style="color: #00bcd4">
-                    heap
-                </a>
-            </span>
-            
-            <span class="tag">
                 
-                <a href="/tags/pwn/" style="color: #03a9f4">
-                    pwn
-                </a>
+                <span class="tag">
+                    
+                    <a href="/tags/heap/" style="color: #ff7d73">
+                        heap
+                    </a>
+                </span>
+                
+                <span class="tag">
+                    
+                    <a href="/tags/pwn/" style="color: #00a596">
+                        pwn
+                    </a>
+                </span>
+                
             </span>
             
-        </span>
-        
-    </div>
+        </div>
     
     <div class="content" v-pre>
         <h2 id="malloc-state"><a href="#malloc-state" class="headerlink" title="malloc_state"></a>malloc_state</h2><p>当我们在 pwndbg 中 p main_arena，打印的东西好像就是这个。</p>
@@ -348,6 +363,7 @@ libc_hidden_def (__libc_malloc)
     
     
     
+    </div>
 </div>
 
             <footer id="footer">

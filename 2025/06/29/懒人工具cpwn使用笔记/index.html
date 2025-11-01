@@ -51,6 +51,9 @@
 
 
 
+
+<script src="/js/lib/toc.js"></script>
+
 <link rel="stylesheet" href="/css/main.css" />
 
 <meta name="generator" content="Hexo 7.3.0"></head>
@@ -160,42 +163,54 @@
 
         <div id="main" :class="loading ? 'into-enter-from': 'into-enter-active'">
 
-            <div class="article">
-    <div>
-        <h1>懒人工具cpwn使用笔记</h1>
-    </div>
-    <div class="info">
-        <span class="date">
-            <span class="icon">
-                <i class="fa-solid fa-calendar fa-fw"></i>
-            </span>
-            2025/6/29
-        </span>
-        
-        
-        <span class="tags">
-            <span class="icon">
-                <i class="fa-solid fa-tags fa-fw"></i>
+            <div class="article-container">
+    
+    <aside class="toc-wrapper">
+        <div class="toc-content">
+            <div class="toc-title">
+                <i class="fa-solid fa-list"></i>
+                <span>目录</span>
+            </div>
+            <ol class="toc-list"><li class="toc-list-item toc-list-level-2"><a class="toc-list-link" href="#cpwn-%E5%AE%89%E8%A3%85"><span class="toc-list-text">cpwn 安装</span></a></li><li class="toc-list-item toc-list-level-2"><a class="toc-list-link" href="#cpwn-%E4%BD%BF%E7%94%A8"><span class="toc-list-text">cpwn 使用</span></a></li></ol>
+        </div>
+    </aside>
+    
+    <div class="article">
+        <div>
+            <h1>懒人工具cpwn使用笔记</h1>
+        </div>
+        <div class="info">
+            <span class="date">
+                <span class="icon">
+                    <i class="fa-solid fa-calendar fa-fw"></i>
+                </span>
+                2025/6/29
             </span>
             
             
-            <span class="tag">
+            <span class="tags">
+                <span class="icon">
+                    <i class="fa-solid fa-tags fa-fw"></i>
+                </span>
                 
-                <a href="/tags/pwn/" style="color: #ffa2c4">
-                    pwn
-                </a>
-            </span>
-            
-            <span class="tag">
                 
-                <a href="/tags/tools/" style="color: #00a596">
-                    tools
-                </a>
+                <span class="tag">
+                    
+                    <a href="/tags/pwn/" style="color: #00a596">
+                        pwn
+                    </a>
+                </span>
+                
+                <span class="tag">
+                    
+                    <a href="/tags/tools/" style="color: #03a9f4">
+                        tools
+                    </a>
+                </span>
+                
             </span>
             
-        </span>
-        
-    </div>
+        </div>
     
     <div class="content" v-pre>
         <h2 id="cpwn-安装"><a href="#cpwn-安装" class="headerlink" title="cpwn 安装"></a>cpwn 安装</h2><pre><code class="bash">git clone https://github.com/GeekCmore/cpwn
@@ -231,6 +246,7 @@ cd cpwn
     
     
     
+    </div>
 </div>
 
             <footer id="footer">
