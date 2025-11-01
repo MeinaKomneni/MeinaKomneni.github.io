@@ -881,7 +881,7 @@ ol li {
     #menu #mobile-menu {
         display: none;
     }
-    .article,
+    .article:not(.article-container .article),
     #archives,
     #footer #footer-wrap {
         width: 900px;
@@ -956,7 +956,7 @@ ol li {
         padding-right: 69px;
     }
     #home-posts-wrap,
-    .article,
+    .article:not(.article-container .article),
     #archives,
     #footer #footer-wrap {
         width: 100%;
@@ -981,8 +981,9 @@ ol li {
     margin: auto;
     margin-top: 100px;
     max-width: 1400px;
-    padding: 20px;
+    padding: 0 20px;
     position: relative;
+    width: 100%;
 }
 
 .toc-wrapper {
@@ -1088,12 +1089,12 @@ ol li {
     background: #a8a8a8;
 }
 
-.article {
+/* Override article styles when inside article-container (with TOC) */
+.article-container .article {
     flex: 1;
-    font-size: 15px;
     margin-top: 0;
+    max-width: none;
     min-width: 0;
-    padding: 20px;
 }
 
 /* Responsive design for TOC */
@@ -1106,8 +1107,9 @@ ol li {
         display: none;
     }
     
-    .article {
+    .article-container .article {
         margin-top: 100px;
+        max-width: 900px;
         width: 100%;
     }
 }
