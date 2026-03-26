@@ -171,7 +171,7 @@
                 <i class="fa-solid fa-list"></i>
                 <span>目录</span>
             </div>
-            <ol class="toc-list"><li class="toc-list-item toc-list-level-1"><a class="toc-list-link" href="#house-of-storm-2026%E5%9B%BD%E8%B5%9B%E5%8D%8A%E5%86%B3%E8%BE%BD%E5%AE%81%E8%B5%9B%E5%8C%BA-catchme-WriteUp"><span class="toc-list-text">house of storm &#x2F; 2026国赛半决辽宁赛区 catchme WriteUp</span></a></li></ol>
+            
         </div>
     </aside>
     
@@ -196,7 +196,7 @@
                 
                 <span class="tag">
                     
-                    <a href="/tags/Pwn/" style="color: #00bcd4">
+                    <a href="/tags/Pwn/" style="color: #ffa2c4">
                         Pwn
                     </a>
                 </span>
@@ -213,8 +213,7 @@
         </div>
     
     <div class="content" v-pre>
-        <h1 id="house-of-storm-2026国赛半决辽宁赛区-catchme-WriteUp"><a href="#house-of-storm-2026国赛半决辽宁赛区-catchme-WriteUp" class="headerlink" title="house of storm &#x2F; 2026国赛半决辽宁赛区 catchme WriteUp"></a>house of storm &#x2F; 2026国赛半决辽宁赛区 catchme WriteUp</h1><p>备注: 远古链子还真考啊<br>已完成: Yes<br>状态: 如会<br>类型: Pwn</p>
-<p>poc：</p>
+        <p>poc：</p>
 <pre><code class="c">// gcc -ggdb -fpie -pie -o house_of_storm house_of_storm.c
 // run: GLIBC_TUNABLES=glibc.malloc.tcache_count=0 ./house_of_storm
 #include &lt;stdio.h&gt;
