@@ -524,6 +524,41 @@ body::-webkit-scrollbar-track {
 .copycode:not(.copied) i:last-child {
     opacity: 0;
 }
+.code-content.folded {
+    max-height: 400px;
+    overflow: hidden;
+}
+.code-fold-mask {
+    bottom: 36px;
+    height: 80px;
+    left: 0;
+    pointer-events: none;
+    position: absolute;
+    right: 0;
+    transition: opacity 0.25s;
+    z-index: 2;
+}
+.code-fold-mask.hidden {
+    opacity: 0;
+}
+.code-fold-btn {
+    border-top: 1px dashed #e1e4e8;
+    color: #5c6b72;
+    cursor: pointer;
+    font-family: "Noto Sans SC", sans-serif;
+    font-size: 13px;
+    padding: 8px 0;
+    text-align: center;
+    transition: color 0.25s;
+    user-select: none;
+    z-index: 3;
+}
+.code-fold-btn:hover {
+    color: #66afef;
+}
+.code-fold-btn i {
+    position: static;
+}
 .fade-enter-active,
 .fade-leave-active {
     transition: opacity 0.3s;

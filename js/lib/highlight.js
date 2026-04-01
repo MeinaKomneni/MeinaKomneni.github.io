@@ -11,6 +11,7 @@ mixins.highlight = {
             return new Promise((resolve) => setTimeout(resolve, ms));
         },
         highlight() {
+            const FOLD_LINE_THRESHOLD = 15;
             let codes = document.querySelectorAll("pre");
             for (let i of codes) {
                 let code = i.textContent;
@@ -41,6 +42,36 @@ mixins.highlight = {
                     copycode.classList.remove("copied");
                     this.copying = false;
                 });
+
+                let lineCount = code.split("\n").length;
+                if (lineCount > FOLD_LINE_THRESHOLD) {
+                    content.classList.add("folded");
+
+                    let mask = document.createElement("div");
+                    mask.className = "code-fold-mask";
+                    i.appendChild(mask);
+
+                    requestAnimationFrame(() => {
+                        let bg =
+                            getComputedStyle(content).backgroundColor ||
+                            "rgb(248, 248, 248)";
+                        mask.style.background = `linear-gradient(to bottom, transparent, ${bg})`;
+                    });
+
+                    let btn = document.createElement("div");
+                    btn.className = "code-fold-btn";
+                    btn.innerHTML =
+                        '<i class="fa-solid fa-angle-down fa-fw"></i> 展开代码';
+                    i.appendChild(btn);
+
+                    btn.addEventListener("click", () => {
+                        let folded = content.classList.toggle("folded");
+                        mask.classList.toggle("hidden", !folded);
+                        btn.innerHTML = folded
+                            ? '<i class="fa-solid fa-angle-down fa-fw"></i> 展开代码'
+                            : '<i class="fa-solid fa-angle-up fa-fw"></i> 收起代码';
+                    });
+                }
             }
         },
     },
