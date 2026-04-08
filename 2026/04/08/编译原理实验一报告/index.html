@@ -211,7 +211,7 @@
                 
                 <span class="tag">
                     
-                    <a href="/tags/WriteUp/" style="color: #00a596">
+                    <a href="/tags/WriteUp/" style="color: #00bcd4">
                         WriteUp
                     </a>
                 </span>
@@ -616,8 +616,7 @@ Args
     | Exp                           &#123; $$ = make_node(&quot;Args&quot;, yylineno, 1, $1); &#125;
     ;
 </code></pre>
-<p>而 <code>flex</code> 的任务就是正则匹配，匹配到后执行 <code>make_token</code> 的动作，生成叶子节点。</p>
-<h3 id="flex部分"><a href="#flex部分" class="headerlink" title="flex部分"></a>flex部分</h3><p>flex的任务就是正则匹配，匹配到后执行 <code>make_token</code> 的动作，生成叶子节点。</p>
+<h3 id="flex部分"><a href="#flex部分" class="headerlink" title="flex部分"></a>flex部分</h3><p><code>flex</code> 的任务就是正则匹配，匹配到后执行 <code>make_token</code> 的动作，生成叶子节点。</p>
 <pre><code class="c">%&#123;
 #include &quot;tree.h&quot;
 #include &quot;parser.tab.h&quot;
