@@ -1,0 +1,743 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>编译原理实验一报告 | Erik_Aoi</title>
+    <meta name="author" content="Kanade" />
+    <meta name="description" content="" />
+    <meta name="keywords" content="" />
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"
+    />
+    <link rel="icon" href="/images/avatar.jpg" />
+    <link rel="preconnect" href="https://s4.zstatic.net" />
+<script src="https://s4.zstatic.net/ajax/libs/vue/3.3.7/vue.global.prod.min.js"></script>
+<link rel="stylesheet" href="https://s4.zstatic.net/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+<link rel="preconnect" href="https://fonts.googleapis.cn" />
+<link rel="preconnect" href="https://fonts.gstatic.cn" crossorigin />
+<link
+    rel="stylesheet"
+    href="https://fonts.googleapis.cn/css2?family=Fira+Code:wght@400;500;600;700&family=Lexend:wght@400;500;600;700;800;900&family=Noto+Sans+SC:wght@400;500;600;700;800;900&display=swap"
+/>
+<script> const mixins = {}; </script>
+
+<script src="https://polyfill.alicdn.com/v3/polyfill.min.js?features=default"></script>
+
+
+<script src="https://s4.zstatic.net/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://s4.zstatic.net/ajax/libs/highlightjs-line-numbers.js/2.8.0/highlightjs-line-numbers.min.js"></script>
+<link
+    rel="stylesheet"
+    href="https://s4.zstatic.net/ajax/libs/highlight.js/11.9.0/styles/github.min.css"
+/>
+<script src="/js/lib/highlight.js"></script>
+
+
+<script src="https://s4.zstatic.net/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://s4.zstatic.net/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="https://s4.zstatic.net/ajax/libs/KaTeX/0.16.9/katex.min.css" />
+<script src="/js/lib/math.js"></script>
+
+
+<script src="/js/lib/preview.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script src="/js/lib/toc.js"></script>
+
+<link rel="stylesheet" href="/css/main.css" />
+
+<meta name="generator" content="Hexo 7.3.0"></head>
+<body>
+    <div id="layout">
+        <transition name="fade">
+            <div id="loading" v-show="loading">
+                <div id="loading-circle">
+                    <h2>LOADING</h2>
+                    <p>加载过慢请开启缓存 浏览器默认开启</p>
+                    <img src="/images/loading.gif" />
+                </div>
+            </div>
+        </transition>
+        <div id="menu" :class="{ hidden: hiddenMenu, 'menu-color': menuColor}">
+    <nav id="desktop-menu">
+        <a class="title" href="/">
+            <span>ERIK_AOI</span>
+        </a>
+        
+        <a href="/">
+            <i class="fa-solid fa-house fa-fw"></i>
+            <span>&ensp;Home</span>
+        </a>
+        
+        <a href="/about">
+            <i class="fa-solid fa-id-card fa-fw"></i>
+            <span>&ensp;About</span>
+        </a>
+        
+        <a href="/archives">
+            <i class="fa-solid fa-box-archive fa-fw"></i>
+            <span>&ensp;Archives</span>
+        </a>
+        
+        <a href="/categories">
+            <i class="fa-solid fa-bookmark fa-fw"></i>
+            <span>&ensp;Categories</span>
+        </a>
+        
+        <a href="/tags">
+            <i class="fa-solid fa-tags fa-fw"></i>
+            <span>&ensp;Tags</span>
+        </a>
+        
+        <a href="/map">
+            <i class="fa-solid fa-diagram-project fa-fw"></i>
+            <span>&ensp;Map</span>
+        </a>
+        
+    </nav>
+    <nav id="mobile-menu">
+        <div class="title" @click="showMenuItems = !showMenuItems">
+            <i class="fa-solid fa-bars fa-fw"></i>
+            <span>&emsp;ERIK_AOI</span>
+        </div>
+        <transition name="slide">
+            <div class="items" v-show="showMenuItems">
+                
+                <a href="/">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-house fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">Home</div>
+                    </div>
+                </a>
+                
+                <a href="/about">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-id-card fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">About</div>
+                    </div>
+                </a>
+                
+                <a href="/archives">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-box-archive fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">Archives</div>
+                    </div>
+                </a>
+                
+                <a href="/categories">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-bookmark fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">Categories</div>
+                    </div>
+                </a>
+                
+                <a href="/tags">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-tags fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">Tags</div>
+                    </div>
+                </a>
+                
+                <a href="/map">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-diagram-project fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">Map</div>
+                    </div>
+                </a>
+                
+            </div>
+        </transition>
+    </nav>
+</div>
+<transition name="fade">
+    <div id="menu-curtain" @click="showMenuItems = !showMenuItems" v-show="showMenuItems"></div>
+</transition>
+
+        <div id="main" :class="loading ? 'into-enter-from': 'into-enter-active'">
+
+            <div class="article-container">
+    
+    <aside class="toc-wrapper">
+        <div class="toc-content">
+            <div class="toc-title">
+                <i class="fa-solid fa-list"></i>
+                <span>目录</span>
+            </div>
+            <ol class="toc-list"><li class="toc-list-item toc-list-level-3"><a class="toc-list-link" href="#Tree%E9%83%A8%E5%88%86"><span class="toc-list-text">Tree部分</span></a></li><li class="toc-list-item toc-list-level-3"><a class="toc-list-link" href="#bison%E9%83%A8%E5%88%86"><span class="toc-list-text">bison部分</span></a></li><li class="toc-list-item toc-list-level-3"><a class="toc-list-link" href="#flex%E9%83%A8%E5%88%86"><span class="toc-list-text">flex部分</span></a></li></ol>
+        </div>
+    </aside>
+    
+    <div class="article">
+        <div>
+            <h1>编译原理实验一报告</h1>
+        </div>
+        <div class="info">
+            <span class="date">
+                <span class="icon">
+                    <i class="fa-solid fa-calendar fa-fw"></i>
+                </span>
+                2026/4/8
+            </span>
+            
+            
+            <span class="tags">
+                <span class="icon">
+                    <i class="fa-solid fa-tags fa-fw"></i>
+                </span>
+                
+                
+                <span class="tag">
+                    
+                    <a href="/tags/WriteUp/" style="color: #00a596">
+                        WriteUp
+                    </a>
+                </span>
+                
+            </span>
+            
+        </div>
+    
+    <div class="content" v-pre>
+        <p>整个实验的任务是要实现一个特色的C–语言的词法分析和语法分析。</p>
+<p>可以根据附件的 <code>C--</code> 语言文法示意图，定义 <code>token</code> 和文法规则。</p>
+<h3 id="Tree部分"><a href="#Tree部分" class="headerlink" title="Tree部分"></a>Tree部分</h3><p>因为实验要求打印语法树，定义了结构体和一些建树的函数</p>
+<p><code>tree.h</code>：</p>
+<pre><code class="c">#ifndef TREE_H
+#define TREE_H
+
+#include &lt;stdarg.h&gt;
+
+/*
+因为当过 oi/acm 选手，我更倾向于用抽象的数组而不是结构体来表示树/节点。
+但为了代码的易维护性，这里就学着用了结构体。
+*/
+
+typedef struct Node &#123;
+    char *name;
+    int lineno;
+    int is_token;
+    char *extra;
+    char *token_name;
+    struct Node *child;
+    struct Node *sibling;
+&#125; Node;
+
+Node *make_node(const char *name, int lineno, int argc, ...);
+Node *make_token(const char *name, int lineno, const char *extra, const char *token_name);
+void print_tree(Node *root, int indent);
+void print_stmt_ast(Node *stmt);
+
+extern int has_error;
+extern int analyze_flag;
+
+#endif
+</code></pre>
+<p><code>tree.c</code>：</p>
+<pre><code class="c">#include &quot;tree.h&quot;
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;string.h&gt;
+
+int has_error = 0;
+int analyze_flag = 0;
+
+/*
+语法树并不总是二叉树。
+这个函数的目标是将多个子节点连接到&quot;name&quot;这个节点上，因此使用了可变参数和 va_list。
+父节点一般是非终结符，是需要我们创造的；bison 调用这个函数时，参数应该都是从栈中拿出来的，$1, $2, $3......
+*/
+
+Node *make_node(const char *name, int lineno, int argc, ...) &#123;
+    Node *node = (Node *)calloc(1, sizeof(Node));
+    node-&gt;name = strdup(name);
+    node-&gt;lineno = lineno;
+    va_list ap;
+    va_start(ap, argc);
+    Node *last = NULL;
+    for (int i = 0; i &lt; argc; i++) &#123;
+        Node *c = va_arg(ap, Node *);
+        if (!c) continue;
+        if (!node-&gt;child) &#123;
+            node-&gt;child = c;
+            node-&gt;lineno = c-&gt;lineno;
+        &#125; else &#123;
+            /*
+            所谓 sibling 其实就是 next 指针，父节点要遍历儿子时就是先 -&gt;child 然后不断 -&gt;sibling，直到 NULL。
+            father 0
+                   |
+            son    1-sibling-&gt;2-sibling-&gt;3-sibling-&gt; NULL
+            */
+            last-&gt;sibling = c;
+        &#125;
+        last = c;
+    &#125;
+    va_end(ap);
+    return node;
+&#125;
+
+/*
+这个函数用于创建一个 token 节点，它们毫无疑问是语法树的叶子节点。
+*/
+
+Node *make_token(const char *name, int lineno, const char *extra, const char *token_name) &#123;
+    Node *node = (Node *)calloc(1, sizeof(Node));
+    node-&gt;name = strdup(name);
+    node-&gt;lineno = lineno;
+/*
+is_token 这个参数看起来有点没有必要，事实上叶子节点一定是 token。
+不过要判断是否是叶子节点需要看它是否有子节点，直接建一个参数大概更直观一点。
+*/
+    node-&gt;is_token = 1;
+    node-&gt;extra = extra ? strdup(extra) : NULL;
+    node-&gt;token_name = token_name ? strdup(token_name) : NULL;
+    return node;
+&#125;
+
+
+/*
+用树枝字符打印 AST。
+*/
+
+static void print_node_label(Node *node) &#123;
+    if (node-&gt;is_token) &#123;
+        printf(&quot;%s&quot;, node-&gt;name);
+        if (node-&gt;token_name) &#123;
+            printf(&quot; %s&quot;, node-&gt;token_name);
+        &#125; else if (node-&gt;extra) &#123;
+            printf(&quot; %s&quot;, node-&gt;extra);
+            // printf(&quot; %s&quot;, node-&gt;extra);
+        &#125;
+        printf(&quot;\n&quot;);
+    &#125; else &#123;
+        printf(&quot;%s (%d)\n&quot;, node-&gt;name, node-&gt;lineno);
+    &#125;
+&#125;
+
+static int needs_space_before(const char *prev_name, const char *curr_name, const char *curr_text) &#123;
+    (void)curr_name;
+
+    if (!prev_name) return 0;
+    if (!curr_text) return 1;
+
+    if (!strcmp(curr_text, &quot;;&quot;) || !strcmp(curr_text, &quot;,&quot;) || !strcmp(curr_text, &quot;)&quot;) ||
+        !strcmp(curr_text, &quot;]&quot;) || !strcmp(curr_text, &quot;&#125;&quot;)) &#123;
+        return 0;
+    &#125;
+
+    if (!strcmp(curr_text, &quot;[&quot;)) return 0;
+    /*除非该&quot;（&quot;是在函数的声明中使用，否则意味这它在表达式中，要在前面加上一个空格*/
+    if (!strcmp(curr_text, &quot;(&quot;)) return strcmp(prev_name, &quot;ID&quot;) != 0;
+    if (!strcmp(prev_name, &quot;LB&quot;) || !strcmp(prev_name, &quot;LP&quot;) || !strcmp(prev_name, &quot;LC&quot;)) return 0;
+
+    return 1;
+&#125;
+
+static void print_stmt_source(Node *node, const char **prev_name) &#123;
+    if (!node) return;
+
+    if (node-&gt;is_token) &#123;
+        const char *text = node-&gt;token_name ? node-&gt;token_name : node-&gt;extra;
+        if (text) &#123;
+            if (needs_space_before(*prev_name, node-&gt;name, text)) putchar(&#39; &#39;);
+            fputs(text, stdout);
+            *prev_name = node-&gt;name;
+        &#125;
+        return;
+    &#125;
+
+    for (Node *c = node-&gt;child; c; c = c-&gt;sibling) &#123;
+        print_stmt_source(c, prev_name);
+    &#125;
+&#125;
+
+static Node *next_visible_sibling(Node *node) &#123;
+    for (Node *c = node-&gt;sibling; c; c = c-&gt;sibling) &#123;
+        if (c-&gt;is_token || c-&gt;child) return c;
+    &#125;
+    return NULL;
+&#125;
+
+static void print_tree_branch(Node *node, const char *prefix, int is_last) &#123;
+    char next_prefix[1024];
+
+    if (!node) return;
+    if (!node-&gt;is_token &amp;&amp; !node-&gt;child) return;
+
+    // printf(&quot;%s%s&quot;, prefix, is_last ? &quot;└── &quot; : &quot;├── &quot;);
+    printf(&quot;%s%s&quot;, prefix, is_last ? &quot;  &quot; : &quot;  &quot;);
+    print_node_label(node);
+
+    // snprintf(next_prefix, sizeof(next_prefix), &quot;%s%s&quot;, prefix, is_last ? &quot;    &quot; : &quot;│   &quot;);
+    snprintf(next_prefix, sizeof(next_prefix), &quot;%s%s&quot;, prefix, is_last ? &quot;  &quot; : &quot;  &quot;);
+    for (Node *c = node-&gt;child; c; c = c-&gt;sibling) &#123;
+        if (!c-&gt;is_token &amp;&amp; !c-&gt;child) continue;
+        print_tree_branch(c, next_prefix, next_visible_sibling(c) == NULL);
+    &#125;
+&#125;
+
+void print_tree(Node *root, int indent) &#123;
+    (void)indent;
+
+    if (!root) return;
+    if (!root-&gt;is_token &amp;&amp; !root-&gt;child) return;
+
+    print_node_label(root);
+    for (Node *c = root-&gt;child; c; c = c-&gt;sibling) &#123;
+        if (!c-&gt;is_token &amp;&amp; !c-&gt;child) continue;
+        print_tree_branch(c, &quot;&quot;, next_visible_sibling(c) == NULL);
+    &#125;
+&#125;
+
+void print_stmt_ast(Node *stmt) &#123;
+    if (!stmt || !analyze_flag) return;
+    const char *prev_name = NULL;
+    printf(&quot;Statement: &quot;);
+    print_stmt_source(stmt, &amp;prev_name);
+    putchar(&#39;\n&#39;);
+    printf(&quot;Statement AST:\n&quot;);
+    print_tree(stmt, 0);
+    putchar(&#39;\n&#39;);
+&#125;
+</code></pre>
+<h3 id="bison部分"><a href="#bison部分" class="headerlink" title="bison部分"></a>bison部分</h3><p>先看bison的部分，首先是 <code>token</code>，也就是终结符：</p>
+<pre><code class="plaintext">INT FLOAT ID Type
+SEMI COMMA ASSIGNOP RELOP
+PLUS MINUS STAR DIV
+ND OR NOT DOT
+LP RP LB RB LC RC
+STRUCT RETURN IF ELSE WHILE
+</code></pre>
+<p>然后是非终结符：</p>
+<pre><code class="plaintext">/* non-terminals */
+%type &lt;node&gt; Program ExtDefList ExtDef ExtDecList
+%type &lt;node&gt; Specifier StructSpecifier OptTag Tag
+%type &lt;node&gt; VarDec FunDec VarList ParamDec
+%type &lt;node&gt; CompSt StmtList Stmt
+%type &lt;node&gt; DefList Def DecList Dec
+%type &lt;node&gt; Exp Args
+</code></pre>
+<p>同时，对于以下终结符（和运算有关），需要确定它们的优先级：</p>
+<p><code>%left</code> 表示左结合，<code>%right</code> 表示右结合，<code>%nonassoc</code> 表示不结合，优先级从低到高。</p>
+<pre><code class="plaintext">/* precedence (low → high) */
+%nonassoc LOWER_THAN_ELSE //
+%nonassoc ELSE // else的优先级最低
+%right ASSIGNOP // 赋值运算右结合，从右到左进行，即 a=b=c &lt;=&gt; a=(b=c)
+%left OR // 左结合
+%left AND // 定义了AND的优先级高于OR
+%left RELOP // &gt;= &lt;= 等关系运算符
+%left PLUS MINUS // + -
+%left STAR DIV // 乘除高于加减
+%right NOT // !的优先级更高
+%left LP RP LB RB DOT // ( ) [ ] . 的优先级最高
+</code></pre>
+<p>其中，<code>LOWER_THAN_ELSE</code> 定义一个虚拟的最低优先级，<code>ELSE</code> 需要比”没有 else 的 if” 优先级更高。</p>
+<p>通常语言都规定：<code>else</code> 和最近的那个还没匹配的 <code>if</code> 结合。为了避免发生移进&#x2F;归约冲突，我们就让 <code>ELSE</code> 的优先级高于 <code>LOWER_THAN_ELSE</code>。</p>
+<pre><code class="plaintext">  if a then  // else 的优先级需要高于这个if
+      if b then // 这样它才会匹配这个 if
+          s1
+      else
+          s2
+</code></pre>
+<p>文法部分照着示意图抄就行了，{}里是规约到这里时所做的动作，这里就是建树。</p>
+<pre><code class="c">Program
+    : ExtDefList            &#123; root = make_node(&quot;Program&quot;, yylineno, 1, $1); &#125;
+    ;
+
+ExtDefList
+    : ExtDef ExtDefList     &#123; $$ = make_node(&quot;ExtDefList&quot;, yylineno, 2, $1, $2); &#125; // 这条产生式归约完成后，$$ 代表的语义值会作为归约结果压回语义值栈。
+    | /* epsilon */           &#123; $$ = NULL; &#125;
+    ;
+
+ExtDef
+    : Specifier ExtDecList SEMI     &#123; $$ = make_node(&quot;ExtDef&quot;, yylineno, 3, $1, $2, $3); &#125;
+    | Specifier SEMI                &#123; $$ = make_node(&quot;ExtDef&quot;, yylineno, 2, $1, $2); &#125;
+    | Specifier FunDec CompSt       &#123; $$ = make_node(&quot;ExtDef&quot;, yylineno, 3, $1, $2, $3); &#125;
+    | error SEMI                    &#123; $$ = NULL; &#125;
+    ;
+
+ExtDecList
+    : VarDec                        &#123; $$ = make_node(&quot;ExtDecList&quot;, yylineno, 1, $1); &#125;
+    | VarDec COMMA ExtDecList       &#123; $$ = make_node(&quot;ExtDecList&quot;, yylineno, 3, $1, $2, $3); &#125;
+    ;
+
+/* ===== Specifiers ===== */
+
+Specifier
+    : Type                          &#123; $$ = make_node(&quot;Specifier&quot;, yylineno, 1, $1); &#125;
+    | StructSpecifier               &#123; $$ = make_node(&quot;Specifier&quot;, yylineno, 1, $1); &#125;
+    ;
+
+StructSpecifier
+    : STRUCT OptTag LC DefList RC   &#123; $$ = make_node(&quot;StructSpecifier&quot;, yylineno, 5, $1, $2, $3, $4, $5); &#125;
+    | STRUCT Tag                    &#123; $$ = make_node(&quot;StructSpecifier&quot;, yylineno, 2, $1, $2); &#125;
+    ;
+
+OptTag
+    : ID                            &#123; $$ = make_node(&quot;OptTag&quot;, yylineno, 1, $1); &#125;
+    | /* epsilon */                   &#123; $$ = NULL; &#125;
+    ;
+
+Tag
+    : ID                            &#123; $$ = make_node(&quot;Tag&quot;, yylineno, 1, $1); &#125;
+    ;
+
+/* ===== Declarators ===== */
+
+VarDec
+    : ID                            &#123; $$ = make_node(&quot;VarDec&quot;, yylineno, 1, $1); &#125;
+    | VarDec LB INT RB              &#123; $$ = make_node(&quot;VarDec&quot;, yylineno, 4, $1, $2, $3, $4); &#125;
+    ;
+
+FunDec
+    : ID LP VarList RP              &#123; $$ = make_node(&quot;FunDec&quot;, yylineno, 4, $1, $2, $3, $4); &#125;
+    | ID LP RP                      &#123; $$ = make_node(&quot;FunDec&quot;, yylineno, 3, $1, $2, $3); &#125;
+    ;
+
+VarList
+    : ParamDec COMMA VarList        &#123; $$ = make_node(&quot;VarList&quot;, yylineno, 3, $1, $2, $3); &#125;
+    | ParamDec                      &#123; $$ = make_node(&quot;VarList&quot;, yylineno, 1, $1); &#125;
+    ;
+
+ParamDec
+    : Specifier VarDec              &#123; $$ = make_node(&quot;ParamDec&quot;, yylineno, 2, $1, $2); &#125;
+    ;
+
+/* ===== Statements ===== */
+
+CompSt
+    : LC DefList StmtList RC        &#123; $$ = make_node(&quot;CompSt&quot;, yylineno, 4, $1, $2, $3, $4); &#125;
+    | error RC                      &#123; $$ = NULL; &#125;
+    ;
+
+StmtList
+    : Stmt StmtList                 &#123; $$ = make_node(&quot;StmtList&quot;, yylineno, 2, $1, $2); &#125;
+    | /* epsilon */                   &#123; $$ = NULL; &#125;
+    ;
+
+Stmt
+    : Exp SEMI                              &#123;
+                                                $$ = make_node(&quot;Stmt&quot;, yylineno, 2, $1, $2);
+                                                print_stmt_ast($$);
+                                            &#125;
+    | CompSt                                &#123;
+                                                $$ = make_node(&quot;Stmt&quot;, yylineno, 1, $1);
+                                                print_stmt_ast($$);
+                                            &#125;
+    | RETURN Exp SEMI                       &#123;
+                                                $$ = make_node(&quot;Stmt&quot;, yylineno, 3, $1, $2, $3);
+                                                print_stmt_ast($$);
+                                            &#125;
+    | IF LP Exp RP Stmt %prec LOWER_THAN_ELSE
+                                            &#123;
+                                                $$ = make_node(&quot;Stmt&quot;, yylineno, 5, $1, $2, $3, $4, $5);
+                                                print_stmt_ast($$);
+                                            &#125;
+    | IF LP Exp RP Stmt ELSE Stmt           &#123;
+                                                $$ = make_node(&quot;Stmt&quot;, yylineno, 7, $1, $2, $3, $4, $5, $6, $7);
+                                                print_stmt_ast($$);
+                                            &#125;
+    | WHILE LP Exp RP Stmt                  &#123;
+                                                $$ = make_node(&quot;Stmt&quot;, yylineno, 5, $1, $2, $3, $4, $5);
+                                                print_stmt_ast($$);
+                                            &#125;
+    | error SEMI                            &#123; $$ = NULL; &#125;
+    ;
+
+/* ===== Local Definitions ===== */
+
+DefList
+    : Def DefList                   &#123; $$ = make_node(&quot;DefList&quot;, yylineno, 2, $1, $2); &#125;
+    | /* empty */                   &#123; $$ = NULL; &#125;
+    ;
+
+Def
+    : Specifier DecList SEMI        &#123; $$ = make_node(&quot;Def&quot;, yylineno, 3, $1, $2, $3); &#125;
+    | error SEMI                    &#123; $$ = NULL; &#125;
+    ;
+
+DecList
+    : Dec                           &#123; $$ = make_node(&quot;DecList&quot;, yylineno, 1, $1); &#125;
+    | Dec COMMA DecList             &#123; $$ = make_node(&quot;DecList&quot;, yylineno, 3, $1, $2, $3); &#125;
+    ;
+
+Dec
+    : VarDec                        &#123; $$ = make_node(&quot;Dec&quot;, yylineno, 1, $1); &#125;
+    | VarDec ASSIGNOP Exp           &#123; $$ = make_node(&quot;Dec&quot;, yylineno, 3, $1, $2, $3); &#125;
+    ;
+
+/* ===== Expressions ===== */
+
+Exp
+    : Exp ASSIGNOP Exp              &#123; $$ = make_node(&quot;Exp&quot;, yylineno, 3, $1, $2, $3); &#125;
+    | Exp AND Exp                   &#123; $$ = make_node(&quot;Exp&quot;, yylineno, 3, $1, $2, $3); &#125;
+    | Exp OR Exp                    &#123; $$ = make_node(&quot;Exp&quot;, yylineno, 3, $1, $2, $3); &#125;
+    | Exp RELOP Exp                 &#123; $$ = make_node(&quot;Exp&quot;, yylineno, 3, $1, $2, $3); &#125;
+    | Exp PLUS Exp                  &#123; $$ = make_node(&quot;Exp&quot;, yylineno, 3, $1, $2, $3); &#125;
+    | Exp MINUS Exp                 &#123; $$ = make_node(&quot;Exp&quot;, yylineno, 3, $1, $2, $3); &#125;
+    | Exp STAR Exp                  &#123; $$ = make_node(&quot;Exp&quot;, yylineno, 3, $1, $2, $3); &#125;
+    | Exp DIV Exp                   &#123; $$ = make_node(&quot;Exp&quot;, yylineno, 3, $1, $2, $3); &#125;
+    | LP Exp RP                     &#123; $$ = make_node(&quot;Exp&quot;, yylineno, 3, $1, $2, $3); &#125;
+    | MINUS Exp %prec NOT           &#123; $$ = make_node(&quot;Exp&quot;, yylineno, 2, $1, $2); &#125;
+    | NOT Exp                       &#123; $$ = make_node(&quot;Exp&quot;, yylineno, 2, $1, $2); &#125;
+    | ID LP Args RP                 &#123; $$ = make_node(&quot;Exp&quot;, yylineno, 4, $1, $2, $3, $4); &#125;
+    | ID LP RP                      &#123; $$ = make_node(&quot;Exp&quot;, yylineno, 3, $1, $2, $3); &#125;
+    | Exp LB Exp RB                 &#123; $$ = make_node(&quot;Exp&quot;, yylineno, 4, $1, $2, $3, $4); &#125;
+    | Exp DOT ID                    &#123; $$ = make_node(&quot;Exp&quot;, yylineno, 3, $1, $2, $3); &#125;
+    | ID                            &#123; $$ = make_node(&quot;Exp&quot;, yylineno, 1, $1); &#125;
+    | INT                           &#123; $$ = make_node(&quot;Exp&quot;, yylineno, 1, $1); &#125;
+    | FLOAT                         &#123; $$ = make_node(&quot;Exp&quot;, yylineno, 1, $1); &#125;
+    ;
+
+Args
+    : Exp COMMA Args                &#123; $$ = make_node(&quot;Args&quot;, yylineno, 3, $1, $2, $3); &#125;
+    | Exp                           &#123; $$ = make_node(&quot;Args&quot;, yylineno, 1, $1); &#125;
+    ;
+</code></pre>
+<p>而 <code>flex</code> 的任务就是正则匹配，匹配到后执行 <code>make_token</code> 的动作，生成叶子节点。</p>
+<h3 id="flex部分"><a href="#flex部分" class="headerlink" title="flex部分"></a>flex部分</h3><p>flex的任务就是正则匹配，匹配到后执行 <code>make_token</code> 的动作，生成叶子节点。</p>
+<pre><code class="c">%&#123;
+#include &quot;tree.h&quot;
+#include &quot;parser.tab.h&quot;
+#include &lt;stdlib.h&gt;
+#include &lt;string.h&gt;
+
+extern int has_error;
+%&#125;
+
+%option yylineno
+%option noyywrap
+
+%x COMMENT
+
+%%
+
+&quot;//&quot;.*              &#123; /* single-line comment */ &#125;
+&quot;/*&quot;                &#123; BEGIN(COMMENT); &#125;
+&lt;COMMENT&gt;&quot;*/&quot;       &#123; BEGIN(INITIAL); &#125;
+&lt;COMMENT&gt;\n         &#123; &#125;
+&lt;COMMENT&gt;.          &#123; &#125;
+&lt;COMMENT&gt;&lt;&lt;EOF&gt;&gt;    &#123; printf(&quot;Error type A at Line %d: Unterminated comment.\n&quot;, yylineno); has_error = 1; return 0; &#125;
+
+&quot;struct&quot;            &#123; yylval.node = make_token(&quot;STRUCT&quot;, yylineno, NULL, yytext); return STRUCT; &#125;
+&quot;return&quot;            &#123; yylval.node = make_token(&quot;RETURN&quot;, yylineno, NULL, yytext); return RETURN; &#125;
+&quot;if&quot;                &#123; yylval.node = make_token(&quot;IF&quot;, yylineno, NULL, yytext); return IF; &#125;
+&quot;else&quot;              &#123; yylval.node = make_token(&quot;ELSE&quot;, yylineno, NULL, yytext); return ELSE; &#125;
+&quot;while&quot;             &#123; yylval.node = make_token(&quot;WHILE&quot;, yylineno, NULL, yytext); return WHILE; &#125;
+&quot;int&quot;               &#123; yylval.node = make_token(&quot;Type&quot;, yylineno, &quot;int&quot;, yytext); return Type; &#125;
+&quot;float&quot;             &#123; yylval.node = make_token(&quot;Type&quot;, yylineno, &quot;float&quot;, yytext); return Type; &#125;
+
+[a-zA-Z_][a-zA-Z0-9_]*  &#123; yylval.node = make_token(&quot;ID&quot;, yylineno, yytext, yytext); return ID; &#125;
+
+0[xX][0-9a-fA-F]+  &#123; char b[32]; snprintf(b, 32, &quot;%d&quot;, (int)strtol(yytext, NULL, 16)); yylval.node = make_token(&quot;INT&quot;, yylineno, b, yytext); return INT; &#125;
+0[0-7]+             &#123; char b[32]; snprintf(b, 32, &quot;%d&quot;, (int)strtol(yytext, NULL, 8));  yylval.node = make_token(&quot;INT&quot;, yylineno, b, yytext); return INT; &#125;
+[0-9]+\.[0-9]+      &#123; yylval.node = make_token(&quot;FLOAT&quot;, yylineno, yytext, yytext); return FLOAT; &#125;
+[0-9]+              &#123; yylval.node = make_token(&quot;INT&quot;, yylineno, yytext, yytext); return INT; &#125;
+
+&quot;&gt;=&quot;                &#123; yylval.node = make_token(&quot;RELOP&quot;, yylineno, NULL, yytext); return RELOP; &#125;
+&quot;&lt;=&quot;                &#123; yylval.node = make_token(&quot;RELOP&quot;, yylineno, NULL, yytext); return RELOP; &#125;
+&quot;==&quot;                &#123; yylval.node = make_token(&quot;RELOP&quot;, yylineno, NULL, yytext); return RELOP; &#125;
+&quot;!=&quot;                &#123; yylval.node = make_token(&quot;RELOP&quot;, yylineno, NULL, yytext); return RELOP; &#125;
+&quot;&gt;&quot;                 &#123; yylval.node = make_token(&quot;RELOP&quot;, yylineno, NULL, yytext); return RELOP; &#125;
+&quot;&lt;&quot;                 &#123; yylval.node = make_token(&quot;RELOP&quot;, yylineno, NULL, yytext); return RELOP; &#125;
+
+&quot;&amp;&amp;&quot;                &#123; yylval.node = make_token(&quot;AND&quot;, yylineno, NULL, yytext); return AND; &#125;
+&quot;||&quot;                &#123; yylval.node = make_token(&quot;OR&quot;, yylineno, NULL, yytext); return OR; &#125;
+
+&quot;=&quot;                 &#123; yylval.node = make_token(&quot;ASSIGNOP&quot;, yylineno, NULL, yytext); return ASSIGNOP; &#125;
+&quot;+&quot;                 &#123; yylval.node = make_token(&quot;PLUS&quot;, yylineno, NULL, yytext); return PLUS; &#125;
+&quot;-&quot;                 &#123; yylval.node = make_token(&quot;MINUS&quot;, yylineno, NULL, yytext); return MINUS; &#125;
+&quot;*&quot;                 &#123; yylval.node = make_token(&quot;STAR&quot;, yylineno, NULL, yytext); return STAR; &#125;
+&quot;/&quot;                 &#123; yylval.node = make_token(&quot;DIV&quot;, yylineno, NULL, yytext); return DIV; &#125;
+&quot;!&quot;                 &#123; yylval.node = make_token(&quot;NOT&quot;, yylineno, NULL, yytext); return NOT; &#125;
+&quot;.&quot;                 &#123; yylval.node = make_token(&quot;DOT&quot;, yylineno, NULL, yytext); return DOT; &#125;
+
+&quot;;&quot;                 &#123; yylval.node = make_token(&quot;SEMI&quot;, yylineno, NULL, yytext); return SEMI; &#125;
+&quot;,&quot;                 &#123; yylval.node = make_token(&quot;COMMA&quot;, yylineno, NULL, yytext); return COMMA; &#125;
+&quot;(&quot;                 &#123; yylval.node = make_token(&quot;LP&quot;, yylineno, NULL, yytext); return LP; &#125;
+&quot;)&quot;                 &#123; yylval.node = make_token(&quot;RP&quot;, yylineno, NULL, yytext); return RP; &#125;
+&quot;[&quot;                 &#123; yylval.node = make_token(&quot;LB&quot;, yylineno, NULL, yytext); return LB; &#125;
+&quot;]&quot;                 &#123; yylval.node = make_token(&quot;RB&quot;, yylineno, NULL, yytext); return RB; &#125;
+&quot;&#123;&quot;                 &#123; yylval.node = make_token(&quot;LC&quot;, yylineno, NULL, yytext); return LC; &#125;
+&quot;&#125;&quot;                 &#123; yylval.node = make_token(&quot;RC&quot;, yylineno, NULL, yytext); return RC; &#125;
+
+\n                  &#123; &#125;
+[ \t\r]+            &#123; &#125;
+
+.                   &#123; printf(&quot;Error type A at Line %d: Mysterious character \&quot;%s\&quot;.\n&quot;, yylineno, yytext); has_error = 1; &#125;
+
+%%
+</code></pre>
+<p>最后的打印直接对着树进行前序遍历即可。</p>
+
+    </div>
+    
+    
+    
+    
+    
+    
+    
+    </div>
+</div>
+
+            <footer id="footer">
+    <div id="footer-wrap">
+        <div>
+            &copy;
+            2025 - 2026 Erik_Aoi
+            <span id="footer-icon">
+                <i class="fa-solid fa-font-awesome fa-fw"></i>
+            </span>
+            &commat;Kanade
+        </div>
+        <div>
+            Based on the <a target="_blank" rel="noopener" href="https://hexo.io">Hexo Engine</a> &amp;
+            <a target="_blank" rel="noopener" href="https://github.com/theme-particlex/hexo-theme-particlex">ParticleX Theme</a>
+        </div>
+        
+    </div>
+</footer>
+
+        </div>
+        
+        <transition name="fade">
+            <div id="preview" ref="preview" v-show="previewShow">
+                <img id="preview-content" ref="previewContent" />
+            </div>
+        </transition>
+        
+    </div>
+    <script src="/js/main.js"></script>
+    <script src="/js/cursor.js"></script>
+    
+    
+
+
+
+
+    
+</body>
+</html>
