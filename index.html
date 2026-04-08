@@ -220,656 +220,7 @@
     <div class="description">
         <div class="content" v-pre>
             
-            <p>不写废话直接讲代码。</p>
-<h3 id="part1"><a href="#part1" class="headerlink" title="part1"></a>part1</h3><p>part1就是用libpcap抓包，然后分析包的内容。</p>
-<p>一开始根本抓不到，后面发现目标网站用的是ipv6，得写个兼容的逻辑……</p>
-<pre><code class="c">/*
- * 实验1(第一部分) - 基于 libpcap 的 HTTP 被动捕包 (C 语言版本)
- * 使用 pcap_loop + 回调函数捕获 HTTP 数据包并分析协议
- *
- * 编译: gcc -o http_capture http_capture.c -lpcap
- * 运行: sudo ./http_capture [接口名]
- */
-
-#include &lt;stdio.h&gt;
-#include &lt;stdlib.h&gt;
-#include &lt;string.h&gt;
-#include &lt;time.h&gt;
-#include &lt;pcap.h&gt;
-#include &lt;netinet/ip.h&gt;
-#include &lt;netinet/ip6.h&gt;
-#include &lt;netinet/tcp.h&gt;
-#include &lt;netinet/if_ether.h&gt;
-#include &lt;arpa/inet.h&gt;
-
-#define SNAP_LEN 65535
-#define MAX_PAYLOAD_PRINT 2000
-#define SEPARATOR &quot;======================================================================&quot;
-
-/* 获取当前时间字符串 HH:MM:SS */
-static void get_timestr(char *buf, size_t len)
-&#123;
-    time_t now = time(NULL);
-    struct tm *t = localtime(&amp;now);
-    strftime(buf, len, &quot;%H:%M:%S&quot;, t);
-&#125;
-
-/* 检查 payload 是否以指定前缀开头 */
-static int starts_with(const char *s, const char *prefix)
-&#123;
-    return strncmp(s, prefix, strlen(prefix)) == 0;
-&#125;
-
-/* 打印 HTTP 请求头部各行 */
-static void print_header_lines(const char *headers, int header_len)
-&#123;
-    const char *p = headers;
-    const char *end = headers + header_len;
-
-    /* 跳过请求行/状态行 */
-    while (p &lt; end &amp;&amp; *p != &#39;\r&#39; &amp;&amp; *p != &#39;\n&#39;)
-        p++;
-    if (p + 2 &lt;= end &amp;&amp; p[0] == &#39;\r&#39; &amp;&amp; p[1] == &#39;\n&#39;)
-        p += 2;
-
-    while (p &lt; end) &#123;
-        if (*p == &#39;\r&#39; || *p == &#39;\n&#39;)
-            break;
-        const char *line_end = p;
-        while (line_end &lt; end &amp;&amp; *line_end != &#39;\r&#39; &amp;&amp; *line_end != &#39;\n&#39;)
-            line_end++;
-        printf(&quot;    %.*s\n&quot;, (int)(line_end - p), p);
-        p = line_end;
-        if (p + 2 &lt;= end &amp;&amp; p[0] == &#39;\r&#39; &amp;&amp; p[1] == &#39;\n&#39;)
-            p += 2;
-        else if (p &lt; end)
-            p++;
-    &#125;
-&#125;
-
-/* 从 headers 中提取 Host 值 */
-static void extract_host(const char *headers, int header_len, char *host, size_t host_size)
-&#123;
-    host[0] = &#39;\0&#39;;
-    const char *p = headers;
-    const char *end = headers + header_len;
-
-    while (p &lt; end) &#123;
-        /* 不区分大小写匹配 &quot;host:&quot; */
-        if ((p + 5 &lt;= end) &amp;&amp;
-            (p[0] == &#39;H&#39; || p[0] == &#39;h&#39;) &amp;&amp;
-            (p[1] == &#39;O&#39; || p[1] == &#39;o&#39;) &amp;&amp;
-            (p[2] == &#39;S&#39; || p[2] == &#39;s&#39;) &amp;&amp;
-            (p[3] == &#39;T&#39; || p[3] == &#39;t&#39;) &amp;&amp;
-            p[4] == &#39;:&#39;) &#123;
-            const char *val = p + 5;
-            while (val &lt; end &amp;&amp; *val == &#39; &#39;)
-                val++;
-            const char *val_end = val;
-            while (val_end &lt; end &amp;&amp; *val_end != &#39;\r&#39; &amp;&amp; *val_end != &#39;\n&#39;)
-                val_end++;
-            int len = (int)(val_end - val);
-            memcpy(host, val, len);
-            host[len] = &#39;\0&#39;;
-            return;
-        &#125;
-        /* 跳到下一行 */
-        while (p &lt; end &amp;&amp; *p != &#39;\n&#39;)
-            p++;
-        if (p &lt; end)
-            p++;
-    &#125;
-&#125;
-
-/* pcap_loop 回调函数：处理每个捕获的数据包 */
-static void packet_callback(u_char *user, const struct pcap_pkthdr *header,
-                             const u_char *packet)
-&#123;
-    (void)user;
-    (void)header;
-    char ts[16];
-    get_timestr(ts, sizeof(ts));
-
-    const struct ether_header *eth = (const struct ether_header *)packet;
-    uint16_t ether_type = ntohs(eth-&gt;ether_type);
-
-    char src_ip[INET6_ADDRSTRLEN] = &#123;0&#125;;
-    char dst_ip[INET6_ADDRSTRLEN] = &#123;0&#125;;
-    const u_char *tcp_start = NULL;
-    int ip_payload_len = 0;
-
-    if (ether_type == ETHERTYPE_IP) &#123;
-        /* IPv4 */
-        const struct ip *iph = (const struct ip *)(packet + sizeof(struct ether_header));
-        if (iph-&gt;ip_p != IPPROTO_TCP)
-            return;
-        inet_ntop(AF_INET, &amp;iph-&gt;ip_src, src_ip, sizeof(src_ip));
-        inet_ntop(AF_INET, &amp;iph-&gt;ip_dst, dst_ip, sizeof(dst_ip));
-        int ip_hdr_len = iph-&gt;ip_hl * 4;
-        tcp_start = (const u_char *)iph + ip_hdr_len;
-        ip_payload_len = ntohs(iph-&gt;ip_len) - ip_hdr_len;
-    &#125; else if (ether_type == ETHERTYPE_IPV6) &#123;
-        /* IPv6 */
-        const struct ip6_hdr *ip6 = (const struct ip6_hdr *)(packet + sizeof(struct ether_header));
-        if (ip6-&gt;ip6_nxt != IPPROTO_TCP)
-            return; /* 简化处理，不解析扩展头 */
-        inet_ntop(AF_INET6, &amp;ip6-&gt;ip6_src, src_ip, sizeof(src_ip));
-        inet_ntop(AF_INET6, &amp;ip6-&gt;ip6_dst, dst_ip, sizeof(dst_ip));
-        tcp_start = (const u_char *)ip6 + 40;
-        ip_payload_len = ntohs(ip6-&gt;ip6_plen);
-    &#125; else &#123;
-        return;
-    &#125;
-
-    /* TCP 头 */
-    const struct tcphdr *tcph = (const struct tcphdr *)tcp_start;
-    uint16_t sport = ntohs(tcph-&gt;th_sport);
-    uint16_t dport = ntohs(tcph-&gt;th_dport);
-    uint8_t flags = tcph-&gt;th_flags;
-    uint32_t seq = ntohl(tcph-&gt;th_seq);
-    uint32_t ack = ntohl(tcph-&gt;th_ack);
-    int tcp_hdr_len = tcph-&gt;th_off * 4;
-
-    const u_char *payload = tcp_start + tcp_hdr_len;
-    int payload_len = ip_payload_len - tcp_hdr_len;
-
-    /* ===== TCP 三次握手 ===== */
-    if ((flags &amp; (TH_SYN | TH_ACK)) == TH_SYN) &#123;
-        printf(&quot;[%s] [TCP SYN]     %s:%u -&gt; %s:%u  seq=%u\n&quot;,
-               ts, src_ip, sport, dst_ip, dport, seq);
-    &#125; else if ((flags &amp; (TH_SYN | TH_ACK)) == (TH_SYN | TH_ACK)) &#123;
-        printf(&quot;[%s] [TCP SYN-ACK] %s:%u -&gt; %s:%u  seq=%u ack=%u\n&quot;,
-               ts, src_ip, sport, dst_ip, dport, seq, ack);
-    &#125; else if ((flags &amp; TH_ACK) &amp;&amp; payload_len == 0 &amp;&amp; !(flags &amp; TH_FIN)) &#123;
-        printf(&quot;[%s] [TCP ACK]     %s:%u -&gt; %s:%u  ack=%u\n&quot;,
-               ts, src_ip, sport, dst_ip, dport, ack);
-    &#125;
-
-    /* ===== TCP 四次挥手 ===== */
-    if (flags &amp; TH_FIN) &#123;
-        printf(&quot;[%s] [TCP FIN]     %s:%u -&gt; %s:%u\n&quot;,
-               ts, src_ip, sport, dst_ip, dport);
-    &#125;
-
-    if (payload_len &lt;= 0)
-        return;
-
-    /* 将 payload 当作文本处理（仅适用于明文 HTTP） */
-    /* 创建一个以 null 结尾的副本 */
-    int text_len = payload_len &lt; 8192 ? payload_len : 8192;
-    char text[8193];
-    memcpy(text, payload, text_len);
-    text[text_len] = &#39;\0&#39;;
-
-    /* ===== HTTP 请求报文 ===== */
-    if (starts_with(text, &quot;GET &quot;) || starts_with(text, &quot;POST &quot;) ||
-        starts_with(text, &quot;HEAD &quot;) || starts_with(text, &quot;PUT &quot;) ||
-        starts_with(text, &quot;DELETE &quot;)) &#123;
-
-        /* 解析请求行 */
-        char method[16] = &#123;0&#125;, path[2048] = &#123;0&#125;, version[16] = &#123;0&#125;;
-        const char *line_end = strstr(text, &quot;\r\n&quot;);
-        if (!line_end)
-            line_end = text + strlen(text);
-        int line_len = (int)(line_end - text);
-
-        /* method */
-        const char *p = text;
-        int i = 0;
-        while (p &lt; line_end &amp;&amp; *p != &#39; &#39; &amp;&amp; i &lt; 15)
-            method[i++] = *p++;
-        method[i] = &#39;\0&#39;;
-        if (p &lt; line_end) p++; /* 跳过空格 */
-
-        /* path */
-        i = 0;
-        while (p &lt; line_end &amp;&amp; *p != &#39; &#39; &amp;&amp; i &lt; 2047)
-            path[i++] = *p++;
-        path[i] = &#39;\0&#39;;
-        if (p &lt; line_end) p++;
-
-        /* version */
-        i = 0;
-        while (p &lt; line_end &amp;&amp; i &lt; 15)
-            version[i++] = *p++;
-        version[i] = &#39;\0&#39;;
-
-        /* 提取 Host */
-        char host[256];
-        extract_host(text, text_len, host, sizeof(host));
-
-        char url[2560];
-        if (host[0])
-            snprintf(url, sizeof(url), &quot;http://%s%s&quot;, host, path);
-        else
-            snprintf(url, sizeof(url), &quot;%s&quot;, path);
-
-        printf(&quot;\n%s\n&quot;, SEPARATOR);
-        printf(&quot;[%s] &gt;&gt;&gt; HTTP 请求 &lt;&lt;&lt;\n&quot;, ts);
-        printf(&quot;  方法: %s  URL: %s  版本: %s\n&quot;, method, url, version);
-        printf(&quot;  源: %s:%u -&gt; 目的: %s:%u\n&quot;, src_ip, sport, dst_ip, dport);
-        printf(&quot;  --- 请求头 ---\n&quot;);
-        print_header_lines(text, line_end ? (int)(strstr(text, &quot;\r\n\r\n&quot;) ? strstr(text, &quot;\r\n\r\n&quot;) - text : text_len) : text_len);
-        printf(&quot;%s\n\n&quot;, SEPARATOR);
-
-    /* ===== HTTP 响应报文 ===== */
-    &#125; else if (starts_with(text, &quot;HTTP/&quot;)) &#123;
-        const char *hdr_end = strstr(text, &quot;\r\n\r\n&quot;);
-        int header_len = hdr_end ? (int)(hdr_end - text) : text_len;
-        const char *body = hdr_end ? hdr_end + 4 : NULL;
-        int body_len = hdr_end ? text_len - header_len - 4 : 0;
-        if (body_len &lt; 0) body_len = 0;
-
-        /* 状态行 */
-        const char *status_end = strstr(text, &quot;\r\n&quot;);
-        int status_len = status_end ? (int)(status_end - text) : text_len;
-
-        printf(&quot;\n%s\n&quot;, SEPARATOR);
-        printf(&quot;[%s] &lt;&lt;&lt; HTTP 响应 &lt;&lt;&lt;\n&quot;, ts);
-        printf(&quot;  状态行: %.*s\n&quot;, status_len, text);
-        printf(&quot;  源: %s:%u -&gt; 目的: %s:%u\n&quot;, src_ip, sport, dst_ip, dport);
-        printf(&quot;  --- 响应头 ---\n&quot;);
-        print_header_lines(text, header_len);
-
-        if (body &amp;&amp; body_len &gt; 0) &#123;
-            printf(&quot;  --- 响应体 (%d bytes) ---\n&quot;, body_len);
-            int print_len = body_len &lt; MAX_PAYLOAD_PRINT ? body_len : MAX_PAYLOAD_PRINT;
-            printf(&quot;    %.*s\n&quot;, print_len, body);
-            if (body_len &gt; MAX_PAYLOAD_PRINT)
-                printf(&quot;    ... (truncated, total %d bytes)\n&quot;, body_len);
-        &#125;
-        printf(&quot;%s\n\n&quot;, SEPARATOR);
-
-    /* ===== HTTP 续传数据（响应体跨包） ===== */
-    &#125; else if (sport == 80 &amp;&amp; payload_len &gt; 0) &#123;
-        /* 检查是否有可打印内容 */
-        int printable = 0;
-        for (int j = 0; j &lt; text_len &amp;&amp; j &lt; 100; j++) &#123;
-            if (text[j] &gt;= 32 &amp;&amp; text[j] &lt; 127) &#123;
-                printable = 1;
-                break;
-            &#125;
-        &#125;
-        if (printable) &#123;
-            printf(&quot;[%s] [HTTP Data] %s:%u -&gt; %s:%u (%d bytes)\n&quot;,
-                   ts, src_ip, sport, dst_ip, dport, payload_len);
-            int preview_len = text_len &lt; 300 ? text_len : 300;
-            printf(&quot;    %.*s\n&quot;, preview_len, text);
-            if (text_len &gt; 300)
-                printf(&quot;    ... (truncated)\n&quot;);
-        &#125; else &#123;
-            printf(&quot;[%s] [HTTP Binary Data] (%d bytes)\n&quot;, ts, payload_len);
-        &#125;
-    &#125;
-&#125;
-
-int main(int argc, char *argv[])
-&#123;
-    char errbuf[PCAP_ERRBUF_SIZE];
-    const char *iface = argc &gt; 1 ? argv[1] : NULL;
-    const char *bpf_filter = &quot;(tcp port 80) or (ip6 and tcp port 80)&quot;;
-
-    if (!iface) &#123;
-        pcap_if_t *alldevs;
-        pcap_findalldevs(&amp;alldevs, errbuf);
-        static char default_dev[256];
-        strncpy(default_dev, alldevs-&gt;d_name, sizeof(default_dev) - 1);
-        iface = default_dev;
-        pcap_freealldevs(alldevs);
-    &#125;
-
-    printf(&quot;%s\n&quot;, SEPARATOR);
-    printf(&quot;  实验1(第一部分) - HTTP 被动捕包 (libpcap C 版本)\n&quot;);
-    printf(&quot;%s\n&quot;, SEPARATOR);
-    printf(&quot;  接口: %s\n&quot;, iface);
-    printf(&quot;  BPF 过滤器: %s\n&quot;, bpf_filter);
-
-    char timestr[64];
-    time_t now = time(NULL);
-    strftime(timestr, sizeof(timestr), &quot;%Y-%m-%d %H:%M:%S&quot;, localtime(&amp;now));
-    printf(&quot;  时间: %s\n&quot;, timestr);
-    printf(&quot;  提示: 在另一个终端运行 curl http://today.hit.edu.cn/\n&quot;);
-    printf(&quot;  按 Ctrl+C 停止捕获\n&quot;);
-    printf(&quot;%s\n\n&quot;, SEPARATOR);
-
-    pcap_t *handle = pcap_open_live(iface, SNAP_LEN, 1, 1000, errbuf);
-
-    struct bpf_program fp;
-    pcap_compile(handle, &amp;fp, bpf_filter, 1, PCAP_NETMASK_UNKNOWN);
-    pcap_setfilter(handle, &amp;fp);
-    pcap_freecode(&amp;fp); 
-
-    /* pcap_loop: 进入捕获循环，对每个包调用 packet_callback */
-    pcap_loop(handle, -1 /* 无限捕获 */, packet_callback, NULL);
-
-    pcap_close(handle);
-    return 0;
-&#125;
-</code></pre>
-<p><code>libpcap</code> 根据我们写的 <code>bpf_filter</code> 过滤器，自己把它包装进合法的 <code>bpf</code> 程序。</p>
-<p>由于pcap是在协议栈后进行的，它拿到的包是系统本身收、发包的复制，同时具有一定的延迟。</p>
-<h3 id="part2"><a href="#part2" class="headerlink" title="part2"></a>part2</h3><p>part2 直接用xdp在驱动层面进行过滤；如果舍弃包，协议栈后面的程序都拿不到这个包。</p>
-<p>由于代码是用户态书写然后载入内核态的，eBPF的 <code>verifier</code> 会对 <code>xdp.c</code> 代码进行特别严格的检查，书写 <code>xdp.c</code> 会是一个难点。</p>
-<p>有时间会补充一下这两个捕包的差异。</p>
-<pre><code class="c">// SPDX-License-Identifier: GPL-2.0
-/*
- * 实验1(第二部分) - 基于 XDP/eBPF 的 HTTP 被动捕包
- *
- * 内核态 XDP 程序：在网卡驱动层捕获 TCP port 80 的数据包，
- * 提取 IP/TCP 头部信息和 HTTP 载荷，通过 perf event 发送到用户态。
- */
-
-#include &lt;linux/bpf.h&gt;
-#include &lt;linux/if_ether.h&gt;
-#include &lt;linux/in.h&gt;
-#include &lt;linux/ip.h&gt;
-#include &lt;linux/ipv6.h&gt;
-#include &lt;linux/tcp.h&gt;
-#include &lt;bpf/bpf_helpers.h&gt;
-#include &lt;bpf/bpf_endian.h&gt;
-
-#define MAX_PAYLOAD_SIZE 1024
-#define HTTP_PORT        80
-
-struct event &#123;
-    __u8  src_ip[16];   /* IPv4 映射为 ::ffff:x.x.x.x，IPv6 原样存储 */
-    __u8  dst_ip[16];
-    __u16 src_port;
-    __u16 dst_port;
-    __u8  tcp_flags;
-    __u8  is_ipv6;
-    __u8  _pad[2];
-    __u32 payload_len;
-    __u8  payload[MAX_PAYLOAD_SIZE];
-&#125;;
-
-/* perf event 输出 map，用于向用户态发送捕获事件 */
-struct &#123;
-    __uint(type, BPF_MAP_TYPE_PERF_EVENT_ARRAY);
-    __uint(key_size, sizeof(__u32));
-    __uint(value_size, sizeof(__u32));
-&#125; events SEC(&quot;.maps&quot;);
-
-/* per-CPU 临时缓冲区，避免栈溢出（eBPF 栈限制 512 字节） */
-struct &#123;
-    __uint(type, BPF_MAP_TYPE_PERCPU_ARRAY);
-    __uint(max_entries, 1);
-    __type(key, __u32);
-    __type(value, struct event);
-&#125; event_buf SEC(&quot;.maps&quot;);
-
-SEC(&quot;xdp&quot;)
-int xdp_http_capture(struct xdp_md *ctx)
-&#123;
-    void *data     = (void *)(long)ctx-&gt;data;
-    void *data_end = (void *)(long)ctx-&gt;data_end;
-
-    /* ---------- 解析以太网头 ---------- */
-    struct ethhdr *eth = data;
-    if ((void *)(eth + 1) &gt; data_end)
-        return XDP_PASS;
-
-    __u16 h_proto = eth-&gt;h_proto;
-    struct tcphdr *tcp;
-    __u32 ip_hdr_len;
-    __u8  is_ipv6 = 0;
-
-    /* 临时存储 IP 地址，后面填入 evt */
-    __u8 tmp_src[16] = &#123;&#125;;
-    __u8 tmp_dst[16] = &#123;&#125;;
-
-    if (h_proto == bpf_htons(ETH_P_IP)) &#123;
-        /* ---------- IPv4 ---------- */
-        struct iphdr *ip = (void *)(eth + 1);
-        if ((void *)(ip + 1) &gt; data_end)
-            return XDP_PASS;
-        if (ip-&gt;protocol != IPPROTO_TCP)
-            return XDP_PASS;
-
-        ip_hdr_len = ip-&gt;ihl * 4;
-        if (ip_hdr_len &lt; sizeof(struct iphdr) || ip_hdr_len &gt; 60)
-            return XDP_PASS;
-
-        tcp = (void *)ip + ip_hdr_len;
-
-        /* 存为 IPv4-mapped: 前 10 字节 0, 2 字节 0xff, 4 字节地址 */
-        tmp_src[10] = 0xff; tmp_src[11] = 0xff;
-        __builtin_memcpy(&amp;tmp_src[12], &amp;ip-&gt;saddr, 4);
-        tmp_dst[10] = 0xff; tmp_dst[11] = 0xff;
-        __builtin_memcpy(&amp;tmp_dst[12], &amp;ip-&gt;daddr, 4);
-
-    &#125; else if (h_proto == bpf_htons(ETH_P_IPV6)) &#123;
-        /* ---------- IPv6 ---------- */
-        struct ipv6hdr *ip6 = (void *)(eth + 1);
-        if ((void *)(ip6 + 1) &gt; data_end)
-            return XDP_PASS;
-        if (ip6-&gt;nexthdr != IPPROTO_TCP)
-            return XDP_PASS;
-
-        ip_hdr_len = sizeof(struct ipv6hdr);  /* 固定 40 字节 */
-        tcp = (void *)(ip6 + 1);
-        is_ipv6 = 1;
-
-        __builtin_memcpy(tmp_src, &amp;ip6-&gt;saddr, 16);
-        __builtin_memcpy(tmp_dst, &amp;ip6-&gt;daddr, 16);
-    &#125; else &#123;
-        return XDP_PASS;
-    &#125;
-
-    /* ---------- 解析 TCP 头 ---------- */
-    if ((void *)(tcp + 1) &gt; data_end)
-        return XDP_PASS;
-
-    __u16 src_port = bpf_ntohs(tcp-&gt;source);
-    __u16 dst_port = bpf_ntohs(tcp-&gt;dest);
-
-    /* 仅处理 HTTP 端口 */
-    if (src_port != HTTP_PORT &amp;&amp; dst_port != HTTP_PORT)
-        return XDP_PASS;
-
-    /* ---------- 填充事件结构体 ---------- */
-    __u32 zero = 0;
-    struct event *evt = bpf_map_lookup_elem(&amp;event_buf, &amp;zero);
-    if (!evt)
-        return XDP_PASS;
-
-    __builtin_memcpy(evt-&gt;src_ip, tmp_src, 16);
-    __builtin_memcpy(evt-&gt;dst_ip, tmp_dst, 16);
-    evt-&gt;src_port  = src_port;
-    evt-&gt;dst_port  = dst_port;
-    evt-&gt;is_ipv6   = is_ipv6;
-    evt-&gt;tcp_flags = ((__u8 *)tcp)[13];
-
-    /* ---------- 提取 HTTP 载荷 ---------- */
-    __u32 tcp_hdr_len = tcp-&gt;doff * 4;
-    if (tcp_hdr_len &lt; sizeof(struct tcphdr) || tcp_hdr_len &gt; 60)
-        return XDP_PASS;
-
-    __u32 hdr_total = sizeof(struct ethhdr) + ip_hdr_len + tcp_hdr_len;
-    __u32 pkt_len   = data_end - data;
-
-    evt-&gt;payload_len = 0;
-    /* 使用 __u64 避免编译器插入 32 位零扩展拷贝（&lt;&lt;32; &gt;&gt;32），
-     * 使 asm volatile 屏障和 &gt; 0 检查作用在同一个寄存器上，
-     * 让 eBPF 验证器能正确收窄值域。 */
-    __u64 payload_len = (__u64)((__u32)(pkt_len - hdr_total));
-    asm volatile(&quot;&quot; : &quot;+r&quot;(payload_len));
-    if (payload_len &gt; MAX_PAYLOAD_SIZE)
-        payload_len = MAX_PAYLOAD_SIZE;
-    if (payload_len &gt; 0) &#123;
-        int ret = bpf_xdp_load_bytes(ctx, hdr_total, evt-&gt;payload, payload_len);
-        if (ret == 0)
-            evt-&gt;payload_len = (__u32)payload_len;
-    &#125;
-
-    /* ---------- 发送事件到用户态 ---------- */
-    __u64 size = __builtin_offsetof(struct event, payload) + evt-&gt;payload_len;
-    if (size &gt; sizeof(struct event))
-        size = sizeof(struct event);
-
-    bpf_perf_event_output(ctx, &amp;events, BPF_F_CURRENT_CPU, evt, size);
-
-    return XDP_PASS;
-&#125;
-
-char _license[] SEC(&quot;license&quot;) = &quot;GPL&quot;;
-</code></pre>
-<p>写对了后面就不难了，利用 <code>go</code> 的高并行特性写个前端代码，收到事件后就解析 <code>payload</code> 的内容。</p>
-<p><code>go</code> 语言中， <code>:=</code> 类似于 <code>cpp</code> 中的 <code>auto</code>，自动推断变量类型，但写起来更简短；函数声明前缀 <code>go func()</code> 能够创建一个协程，这里就用以处理中断信号，及时关闭 <code>perf event</code>。</p>
-<p>开头的一大堆 <code>import</code> 又有 <code>python</code> 的感觉……</p>
-<pre><code class="go">// 实验1(第二部分) - eBPF 用户态程序
-// 加载 XDP 程序并从 perf event map 读取捕获的 HTTP 数据包
-package main
-
-import (
-    &quot;bytes&quot;
-    &quot;encoding/binary&quot;
-    &quot;fmt&quot;
-    &quot;net&quot;
-    &quot;os&quot;
-    &quot;os/signal&quot;
-    &quot;strings&quot;
-    &quot;syscall&quot;
-    &quot;time&quot;
-
-    &quot;github.com/cilium/ebpf&quot;
-    &quot;github.com/cilium/ebpf/link&quot;
-    &quot;github.com/cilium/ebpf/perf&quot;
-)
-
-// EventHeader 对应内核态 struct event 的头部（不含 payload）
-type EventHeader struct &#123;
-    SrcIP      [16]byte
-    DstIP      [16]byte
-    SrcPort    uint16
-    DstPort    uint16
-    TCPFlags   uint8
-    IsIPv6     uint8
-    Pad        [2]byte
-    PayloadLen uint32
-&#125;
-
-const headerSize = 44 // 16+16+2+2+1+1+2+4
-
-func addrToString(addr [16]byte, isV6 uint8) string &#123;
-    if isV6 == 0 &#123;
-        // IPv4-mapped: 最后 4 字节是 IPv4 地址
-        return net.IP(addr[12:16]).String()
-    &#125;
-    return net.IP(addr[:]).String()
-&#125;
-
-func flagsToString(f uint8) string &#123;
-    names := []struct &#123;
-        mask uint8
-        name string
-    &#125;&#123;
-        &#123;0x01, &quot;FIN&quot;&#125;, &#123;0x02, &quot;SYN&quot;&#125;, &#123;0x04, &quot;RST&quot;&#125;,
-        &#123;0x08, &quot;PSH&quot;&#125;, &#123;0x10, &quot;ACK&quot;&#125;, &#123;0x20, &quot;URG&quot;&#125;,
-    &#125;
-    var parts []string
-    for _, n := range names &#123;
-        if f&amp;n.mask != 0 &#123;
-            parts = append(parts, n.name)
-        &#125;
-    &#125;
-    if len(parts) == 0 &#123;
-        return &quot;NONE&quot;
-    &#125;
-    return strings.Join(parts, &quot;|&quot;)
-&#125;
-
-func main() &#123;
-    ifaceName := &quot;enx6c1ff77293a3&quot;
-    fmt.Println(&quot;======================================&quot;)
-    fmt.Println(&quot;  实验1(第二部分) - XDP HTTP 被动捕包&quot;)
-    fmt.Println(&quot;======================================&quot;)
-    fmt.Printf(&quot;  接口: %s\n&quot;, ifaceName)
-    fmt.Printf(&quot;  时间: %s\n&quot;, time.Now().Format(&quot;2006-01-02 15:04:05&quot;))
-    fmt.Println(&quot;  提示: 在另一终端执行 curl http://today.hit.edu.cn/&quot;)
-    fmt.Println(&quot;  按 Ctrl+C 停止&quot;)
-    fmt.Println(&quot;======================================&quot;)
-    fmt.Println()
-
-    spec, _ := ebpf.LoadCollectionSpec(&quot;xdp.o&quot;)
-    coll, _ := ebpf.NewCollection(spec)
-    defer coll.Close()
-
-    prog := coll.Programs[&quot;xdp_http_capture&quot;]
-
-    iface, _ := net.InterfaceByName(ifaceName)
-    xdpLink, _ := link.AttachXDP(link.XDPOptions&#123;
-        Program:   prog,
-        Interface: iface.Index,
-    &#125;)
-    defer xdpLink.Close()
-    fmt.Printf(&quot;[+] XDP 程序已挂载到 %s\n\n&quot;, ifaceName)
-
-    rd, _ := perf.NewReader(coll.Maps[&quot;events&quot;], os.Getpagesize()*64)
-    defer rd.Close()
-
-    // 5. 信号处理，优雅退出
-    sig := make(chan os.Signal, 1)
-    signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
-    go func() &#123;
-        &lt;-sig
-        fmt.Println(&quot;\n[*] 正在卸载 XDP 程序...&quot;)
-        rd.Close()
-    &#125;()
-
-    for &#123;
-        record, err := rd.Read()
-        if err != nil &#123;
-            break
-        &#125;
-
-        raw := record.RawSample
-        var hdr EventHeader
-        binary.Read(bytes.NewReader(raw[:headerSize]), binary.LittleEndian, &amp;hdr)
-
-        srcIP := addrToString(hdr.SrcIP, hdr.IsIPv6)
-        dstIP := addrToString(hdr.DstIP, hdr.IsIPv6)
-        flags := flagsToString(hdr.TCPFlags)
-        ts := time.Now().Format(&quot;15:04:05&quot;)
-
-        fmt.Printf(&quot;[%s] [%s] %s:%d -&gt; %s:%d&quot;, ts, flags, srcIP, hdr.SrcPort, dstIP, hdr.DstPort)
-
-        if hdr.PayloadLen &gt; 0 &amp;&amp; len(raw) &gt;= headerSize+int(hdr.PayloadLen) &#123;
-            payload := string(raw[headerSize : headerSize+int(hdr.PayloadLen)])
-
-            if strings.HasPrefix(payload, &quot;GET &quot;) ||
-                strings.HasPrefix(payload, &quot;POST &quot;) ||
-                strings.HasPrefix(payload, &quot;HEAD &quot;) &#123;
-                lines := strings.SplitN(payload, &quot;\r\n&quot;, -1)
-                fmt.Printf(&quot;\n  &gt;&gt;&gt; HTTP 请求: %s\n&quot;, lines[0])
-                for _, hl := range lines[1:] &#123;
-                    if hl == &quot;&quot; &#123;
-                        break
-                    &#125;
-                    fmt.Printf(&quot;      %s\n&quot;, hl)
-                &#125;
-            &#125; else if strings.HasPrefix(payload, &quot;HTTP/&quot;) &#123;
-                parts := strings.SplitN(payload, &quot;\r\n\r\n&quot;, 2)
-                headerLines := strings.Split(parts[0], &quot;\r\n&quot;)
-                fmt.Printf(&quot;\n  &lt;&lt;&lt; HTTP 响应: %s\n&quot;, headerLines[0])
-                for _, hl := range headerLines[1:] &#123;
-                    fmt.Printf(&quot;      %s\n&quot;, hl)
-                &#125;
-                if len(parts) &gt; 1 &amp;&amp; len(parts[1]) &gt; 0 &#123;
-                    body := parts[1]
-                    if len(body) &gt; 500 &#123;
-                        body = body[:500] + &quot;...&quot;
-                    &#125;
-                    fmt.Printf(&quot;  Body:\n      %s\n&quot;, body)
-                &#125;
-            &#125; else &#123;
-                fmt.Printf(&quot; [%d bytes payload]&quot;, hdr.PayloadLen)
-            &#125;
-        &#125;
-        fmt.Println()
-    &#125;
-&#125;
-</code></pre>
+            <p>信息内容安全实验一报告 —— HTTP 捕包</p>
 
             
         </div>
@@ -964,12 +315,12 @@ func main() &#123;
         
         <span class="tag">
             
-            <a href="/tags/Pwn/" style="color: #ff7d73">Pwn</a>
+            <a href="/tags/Pwn/" style="color: #ffa2c4">Pwn</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/WriteUp/" style="color: #03a9f4">WriteUp</a>
+            <a href="/tags/WriteUp/" style="color: #ff7d73">WriteUp</a>
         </span>
         
     </div>
@@ -1009,12 +360,12 @@ func main() &#123;
         
         <span class="tag">
             
-            <a href="/tags/pwn/" style="color: #ffa2c4">pwn</a>
+            <a href="/tags/pwn/" style="color: #ff7d73">pwn</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/kernel/" style="color: #00a596">kernel</a>
+            <a href="/tags/kernel/" style="color: #03a9f4">kernel</a>
         </span>
         
     </div>
@@ -1054,12 +405,12 @@ func main() &#123;
         
         <span class="tag">
             
-            <a href="/tags/Pwn/" style="color: #00a596">Pwn</a>
+            <a href="/tags/Pwn/" style="color: #ffa2c4">Pwn</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/WriteUp/" style="color: #ffa2c4">WriteUp</a>
+            <a href="/tags/WriteUp/" style="color: #00bcd4">WriteUp</a>
         </span>
         
     </div>
@@ -1099,12 +450,12 @@ func main() &#123;
         
         <span class="tag">
             
-            <a href="/tags/pwn/" style="color: #00bcd4">pwn</a>
+            <a href="/tags/pwn/" style="color: #03a9f4">pwn</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/rop/" style="color: #ffa2c4">rop</a>
+            <a href="/tags/rop/" style="color: #00bcd4">rop</a>
         </span>
         
     </div>
@@ -1144,12 +495,12 @@ func main() &#123;
         
         <span class="tag">
             
-            <a href="/tags/pwn/" style="color: #00bcd4">pwn</a>
+            <a href="/tags/pwn/" style="color: #ff7d73">pwn</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/heap/" style="color: #ff7d73">heap</a>
+            <a href="/tags/heap/" style="color: #00bcd4">heap</a>
         </span>
         
     </div>
@@ -1189,12 +540,12 @@ func main() &#123;
         
         <span class="tag">
             
-            <a href="/tags/pwn/" style="color: #ff7d73">pwn</a>
+            <a href="/tags/pwn/" style="color: #00bcd4">pwn</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/heap/" style="color: #00a596">heap</a>
+            <a href="/tags/heap/" style="color: #03a9f4">heap</a>
         </span>
         
     </div>
@@ -1234,12 +585,12 @@ func main() &#123;
         
         <span class="tag">
             
-            <a href="/tags/pwn/" style="color: #03a9f4">pwn</a>
+            <a href="/tags/pwn/" style="color: #ffa2c4">pwn</a>
         </span>
         
         <span class="tag">
             
-            <a href="/tags/tools/" style="color: #00a596">tools</a>
+            <a href="/tags/tools/" style="color: #00bcd4">tools</a>
         </span>
         
     </div>
