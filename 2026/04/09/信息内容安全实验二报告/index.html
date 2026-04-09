@@ -1,0 +1,552 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>信息内容安全实验二报告 | Erik_Aoi</title>
+    <meta name="author" content="Kanade" />
+    <meta name="description" content="" />
+    <meta name="keywords" content="" />
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"
+    />
+    <link rel="icon" href="/images/avatar.jpg" />
+    <link rel="preconnect" href="https://s4.zstatic.net" />
+<script src="https://s4.zstatic.net/ajax/libs/vue/3.3.7/vue.global.prod.min.js"></script>
+<link rel="stylesheet" href="https://s4.zstatic.net/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+<link rel="preconnect" href="https://fonts.googleapis.cn" />
+<link rel="preconnect" href="https://fonts.gstatic.cn" crossorigin />
+<link
+    rel="stylesheet"
+    href="https://fonts.googleapis.cn/css2?family=Fira+Code:wght@400;500;600;700&family=Lexend:wght@400;500;600;700;800;900&family=Noto+Sans+SC:wght@400;500;600;700;800;900&display=swap"
+/>
+<script> const mixins = {}; </script>
+
+<script src="https://polyfill.alicdn.com/v3/polyfill.min.js?features=default"></script>
+
+
+<script src="https://s4.zstatic.net/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://s4.zstatic.net/ajax/libs/highlightjs-line-numbers.js/2.8.0/highlightjs-line-numbers.min.js"></script>
+<link
+    rel="stylesheet"
+    href="https://s4.zstatic.net/ajax/libs/highlight.js/11.9.0/styles/github.min.css"
+/>
+<script src="/js/lib/highlight.js"></script>
+
+
+<script src="https://s4.zstatic.net/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://s4.zstatic.net/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<link rel="stylesheet" href="https://s4.zstatic.net/ajax/libs/KaTeX/0.16.9/katex.min.css" />
+<script src="/js/lib/math.js"></script>
+
+
+<script src="/js/lib/preview.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script src="/js/lib/toc.js"></script>
+
+<link rel="stylesheet" href="/css/main.css" />
+
+<meta name="generator" content="Hexo 7.3.0"></head>
+<body>
+    <div id="layout">
+        <transition name="fade">
+            <div id="loading" v-show="loading">
+                <div id="loading-circle">
+                    <h2>LOADING</h2>
+                    <p>加载过慢请开启缓存 浏览器默认开启</p>
+                    <img src="/images/loading.gif" />
+                </div>
+            </div>
+        </transition>
+        <div id="menu" :class="{ hidden: hiddenMenu, 'menu-color': menuColor}">
+    <nav id="desktop-menu">
+        <a class="title" href="/">
+            <span>ERIK_AOI</span>
+        </a>
+        
+        <a href="/">
+            <i class="fa-solid fa-house fa-fw"></i>
+            <span>&ensp;Home</span>
+        </a>
+        
+        <a href="/about">
+            <i class="fa-solid fa-id-card fa-fw"></i>
+            <span>&ensp;About</span>
+        </a>
+        
+        <a href="/archives">
+            <i class="fa-solid fa-box-archive fa-fw"></i>
+            <span>&ensp;Archives</span>
+        </a>
+        
+        <a href="/categories">
+            <i class="fa-solid fa-bookmark fa-fw"></i>
+            <span>&ensp;Categories</span>
+        </a>
+        
+        <a href="/tags">
+            <i class="fa-solid fa-tags fa-fw"></i>
+            <span>&ensp;Tags</span>
+        </a>
+        
+        <a href="/map">
+            <i class="fa-solid fa-diagram-project fa-fw"></i>
+            <span>&ensp;Map</span>
+        </a>
+        
+    </nav>
+    <nav id="mobile-menu">
+        <div class="title" @click="showMenuItems = !showMenuItems">
+            <i class="fa-solid fa-bars fa-fw"></i>
+            <span>&emsp;ERIK_AOI</span>
+        </div>
+        <transition name="slide">
+            <div class="items" v-show="showMenuItems">
+                
+                <a href="/">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-house fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">Home</div>
+                    </div>
+                </a>
+                
+                <a href="/about">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-id-card fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">About</div>
+                    </div>
+                </a>
+                
+                <a href="/archives">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-box-archive fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">Archives</div>
+                    </div>
+                </a>
+                
+                <a href="/categories">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-bookmark fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">Categories</div>
+                    </div>
+                </a>
+                
+                <a href="/tags">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-tags fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">Tags</div>
+                    </div>
+                </a>
+                
+                <a href="/map">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-diagram-project fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">Map</div>
+                    </div>
+                </a>
+                
+            </div>
+        </transition>
+    </nav>
+</div>
+<transition name="fade">
+    <div id="menu-curtain" @click="showMenuItems = !showMenuItems" v-show="showMenuItems"></div>
+</transition>
+
+        <div id="main" :class="loading ? 'into-enter-from': 'into-enter-active'">
+
+            <div class="article-container">
+    
+    <aside class="toc-wrapper">
+        <div class="toc-content">
+            <div class="toc-title">
+                <i class="fa-solid fa-list"></i>
+                <span>目录</span>
+            </div>
+            <ol class="toc-list"><li class="toc-list-item toc-list-level-3"><a class="toc-list-link" href="#%E6%8A%93%E5%8C%85%E6%9E%84%E9%80%A0%E8%AF%B7%E6%B1%82"><span class="toc-list-text">抓包构造请求</span></a></li><li class="toc-list-item toc-list-level-3"><a class="toc-list-link" href="#request"><span class="toc-list-text">request</span></a></li><li class="toc-list-item toc-list-level-3"><a class="toc-list-link" href="#BeautifulSoup"><span class="toc-list-text">BeautifulSoup</span></a></li></ol>
+        </div>
+    </aside>
+    
+    <div class="article">
+        <div>
+            <h1>信息内容安全实验二报告</h1>
+        </div>
+        <div class="info">
+            <span class="date">
+                <span class="icon">
+                    <i class="fa-solid fa-calendar fa-fw"></i>
+                </span>
+                2026/4/9
+            </span>
+            
+            
+            <span class="tags">
+                <span class="icon">
+                    <i class="fa-solid fa-tags fa-fw"></i>
+                </span>
+                
+                
+                <span class="tag">
+                    
+                    <a href="/tags/WriteUp/" style="color: #ffa2c4">
+                        WriteUp
+                    </a>
+                </span>
+                
+            </span>
+            
+        </div>
+    
+    <div class="content" v-pre>
+        <h3 id="抓包构造请求"><a href="#抓包构造请求" class="headerlink" title="抓包构造请求"></a>抓包构造请求</h3><p>目标网址是 <a target="_blank" rel="noopener" href="https://spider.6600666.xyz/">https://spider.6600666.xyz</a>，为了方便先用 <code>brupSuite</code> 抓 <code>get</code> 请求包。</p>
+<p><img src="/%E4%BF%A1%E6%81%AF%E5%86%85%E5%AE%B9%E5%AE%89%E5%85%A8%E5%AE%9E%E9%AA%8C%E4%BA%8C%E6%8A%A5%E5%91%8A/%E5%9B%BE%E7%89%87.png" alt="图片.png"></p>
+<h3 id="request"><a href="#request" class="headerlink" title="request"></a>request</h3><p>抓到以后就可以给 <code>request</code> 用了</p>
+<pre><code class="python">
+RAW_HEADERS = &#39;&#39;&#39;
+User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:149.0) Gecko/20100101 Firefox/149.0
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,/;q=0.8
+Accept-Language: zh-CN,zh;q=0.9,zh-TW;q=0.8,zh-HK;q=0.7,en-US;q=0.6,en;q=0.5
+Accept-Encoding: gzip, deflate, br
+Upgrade-Insecure-Requests: 1
+Sec-Fetch-Dest: document
+Sec-Fetch-Mode: navigate
+Sec-Fetch-Site: none
+Sec-Fetch-User: ?1
+Priority: u=0, i
+Te: trailers
+&#39;&#39;&#39;
+HEADERS = dict(
+line.split(&quot;: &quot;, 1)
+for line in RAW_HEADERS.strip().splitlines()
+)
+</code></pre>
+<p>fetch_url 函数:</p>
+<pre><code class="python">def fetch_page(url):
+    response = requests.get(
+    url,
+    headers=HEADERS,
+    timeout=10,
+    )
+    response.raise_for_status()
+    response.encoding = response.apparent_encoding or response.encoding
+    return response.text
+</code></pre>
+<h3 id="BeautifulSoup"><a href="#BeautifulSoup" class="headerlink" title="BeautifulSoup"></a>BeautifulSoup</h3><p><code>request</code>发送后返回的 <code>resonse.text</code> 是如下形式：</p>
+<pre><code class="html">&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+&lt;title&gt;Index&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;h1&gt;这是一个索引页&lt;/h1&gt;
+&lt;p&gt;一束光照亮了上帝，以为是信仰，没想到是我捏的闪&lt;/p&gt;
+&lt;h2&gt;Links:&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a class=&#39;links&#39; href=&#39;/fe8bbacce9fb43ce9584c3c9ec8b1075.html&#39;&gt;fe8bbacce9fb43ce9584c3c9ec8b1075.html&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a class=&#39;links&#39; href=&#39;/9cc06e1ae7de4f859548aaf8afc6e418.html&#39;&gt;9cc06e1ae7de4f859548aaf8afc6e418.html&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a class=&#39;links&#39; href=&#39;/b34ff0763e4d45278b200fee5155a992.html&#39;&gt;b34ff0763e4d45278b200fee5155a992.html&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a class=&#39;links&#39; href=&#39;/567e10d7134d4d5ebf8b4425ca05e50b.html&#39;&gt;567e10d7134d4d5ebf8b4425ca05e50b.html&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a class=&#39;links&#39; href=&#39;/44cd3e48410047ecaf9511534c63204c.html&#39;&gt;44cd3e48410047ecaf9511534c63204c.html&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div&gt;Powered By Cherrling&lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<p>把它交给 <code>BeautifulSoup</code> 建树：</p>
+<pre><code class="python">soup = BeautifulSoup(html, &quot;html.parser&quot;)
+</code></pre>
+<p>就可以提取了</p>
+<pre><code class="python"># 提取标题
+title = soup.title.get_text(strip=True)
+# 提取正文
+content = &quot;\n&quot;.join(
+    p.get_text(&quot; &quot;, strip=True)
+    for p in soup.find_all(&quot;p&quot;)
+    if p.get_text(&quot; &quot;, strip=True)
+)
+# 提取 links
+links = [
+    urljoin(url, tag[&quot;href&quot;])
+    for tag in soup.find_all(&quot;a&quot;, class_=&quot;links&quot;, href=True)
+]
+</code></pre>
+<p>最后就是写个 <code>bfs</code> 和 <code>dfs</code>，打过算竞的都懂，不多说了</p>
+<pre><code class="python">#!/usr/bin/env python3
+import argparse
+from collections import deque
+from pathlib import Path
+from urllib.parse import urljoin, urlparse
+
+import requests
+from bs4 import BeautifulSoup
+
+RAW_HEADERS = &#39;&#39;&#39;
+User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:149.0) Gecko/20100101 Firefox/149.0
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Language: zh-CN,zh;q=0.9,zh-TW;q=0.8,zh-HK;q=0.7,en-US;q=0.6,en;q=0.5
+Accept-Encoding: gzip, deflate, br
+Upgrade-Insecure-Requests: 1
+Sec-Fetch-Dest: document
+Sec-Fetch-Mode: navigate
+Sec-Fetch-Site: none
+Sec-Fetch-User: ?1
+Priority: u=0, i
+Te: trailers
+&#39;&#39;&#39;
+
+HEADERS = dict(
+    line.split(&quot;: &quot;, 1)
+    for line in RAW_HEADERS.strip().splitlines()
+)
+
+def parse_args():
+    parser = argparse.ArgumentParser(description=&quot;新闻网页爬虫（支持 BFS / DFS）&quot;)
+    parser.add_argument(&quot;url&quot;, help=&quot;起始网页 URL&quot;)
+    parser.add_argument(
+        &quot;--mode&quot;,
+        choices=[&quot;bfs&quot;, &quot;dfs&quot;],
+        default=&quot;bfs&quot;,
+        help=&quot;爬取策略：bfs 或 dfs&quot;,
+    )
+    parser.add_argument(
+        &quot;--max-pages&quot;,
+        type=int,
+        default=10,
+        help=&quot;最大爬取页面数量&quot;,
+    )
+    parser.add_argument(
+        &quot;--max-depth&quot;,
+        type=int,
+        default=2,
+        help=&quot;最大爬取深度&quot;,
+    )
+    parser.add_argument(
+        &quot;--output&quot;,
+        default=None,
+        help=&quot;输出文件路径，默认按模式生成 txt 文件&quot;,
+    )
+    return parser.parse_args()
+
+def fetch_page(url):
+    response = requests.get(
+        url,
+        headers=HEADERS,
+        timeout=10,
+    )
+    response.raise_for_status()
+    response.encoding = response.apparent_encoding or response.encoding
+    # print(response.text)
+    return response.text
+
+&#39;&#39;&#39;
+如果 mode 是 bfs，那就使用队列；如果是 dfs 则使用栈（而不是函数递归调用）。
+&#39;&#39;&#39;
+
+def crawl(start_url, mode, max_pages, max_depth):
+    visited = set()
+    results = []
+    if mode == &quot;bfs&quot;:
+        frontier = deque([(start_url, 0)])
+    else:
+        frontier = [(start_url, 0)]
+
+    while frontier and len(results) &lt; max_pages:
+        if mode == &quot;bfs&quot;:
+            url, depth = frontier.popleft()
+        else:
+            url, depth = frontier.pop()
+
+        if depth &gt; max_depth or url in visited:
+            continue
+
+        visited.add(url)
+        print(f&quot;[&#123;mode.upper()&#125;] 正在爬取: depth=&#123;depth&#125; url=&#123;url&#125;&quot;)
+        html = fetch_page(url)
+
+        soup = BeautifulSoup(html, &quot;html.parser&quot;)
+        # 提取标题
+        title = soup.title.get_text(strip=True)
+        # 提取正文
+        content = &quot;\n&quot;.join(
+            p.get_text(&quot; &quot;, strip=True)
+            for p in soup.find_all(&quot;p&quot;)
+            if p.get_text(&quot; &quot;, strip=True)
+        )
+        # 提取 links
+        links = [
+            urljoin(url, tag[&quot;href&quot;])
+            for tag in soup.find_all(&quot;a&quot;, class_=&quot;links&quot;, href=True)
+        ]
+
+        results.append(
+            &#123;
+                &quot;url&quot;: url,
+                &quot;depth&quot;: depth,
+                &quot;title&quot;: title,
+                &quot;content&quot;: content,
+                &quot;links&quot;: links,
+            &#125;
+        )
+
+        if depth == max_depth:
+            continue
+
+        next_items = []
+        for link in links:
+            if link not in visited:
+                next_items.append((link, depth + 1))
+
+        if mode == &quot;bfs&quot;:
+            frontier.extend(next_items)
+        else:
+            frontier.extend(reversed(next_items))
+
+    return results
+
+def save_results(results, output_path, mode):
+    output = Path(output_path)
+    with output.open(&quot;w&quot;, encoding=&quot;utf-8&quot;) as file:
+        file.write(f&quot;爬取模式: &#123;mode.upper()&#125;\n&quot;)
+        file.write(f&quot;共保存 &#123;len(results)&#125; 个页面\n&quot;)
+        file.write(&quot;=&quot; * 80 + &quot;\n\n&quot;)
+
+        for index, item in enumerate(results, start=1):
+            file.write(f&quot;第 &#123;index&#125; 篇\n&quot;)
+            file.write(f&quot;URL: &#123;item[&#39;url&#39;]&#125;\n&quot;)
+            file.write(f&quot;深度: &#123;item[&#39;depth&#39;]&#125;\n&quot;)
+            file.write(f&quot;标题: &#123;item[&#39;title&#39;]&#125;\n&quot;)
+            file.write(&quot;正文:\n&quot;)
+            file.write(item[&quot;content&quot;] + &quot;\n\n&quot;)
+            file.write(&quot;推荐链接:\n&quot;)
+            if item[&quot;links&quot;]:
+                for link in item[&quot;links&quot;][:20]:
+                    file.write(f&quot;- &#123;link&#125;\n&quot;)
+            else:
+                file.write(&quot;- 无\n&quot;)
+            file.write(&quot;\n&quot; + &quot;-&quot; * 80 + &quot;\n\n&quot;)
+
+def main():
+    args = parse_args()
+    output_path = args.output or f&quot;&#123;args.mode&#125;_result.txt&quot;
+    results = crawl(args.url, args.mode, args.max_pages, args.max_depth)
+    save_results(results, output_path, args.mode)
+    print(f&quot;爬取完成，共保存 &#123;len(results)&#125; 个页面到 &#123;output_path&#125;&quot;)
+
+if __name__ == &quot;__main__&quot;:
+    main()
+</code></pre>
+<pre><code>爬取模式: BFS
+共保存 2 个页面
+================================================================================
+
+第 1 篇
+URL: https://spider.6600666.xyz/
+深度: 0
+标题: Index
+正文:
+一束光照亮了上帝，以为是信仰，没想到是我捏的闪
+
+推荐链接:
+- https://spider.6600666.xyz/fe8bbacce9fb43ce9584c3c9ec8b1075.html
+- https://spider.6600666.xyz/9cc06e1ae7de4f859548aaf8afc6e418.html
+- https://spider.6600666.xyz/b34ff0763e4d45278b200fee5155a992.html
+- https://spider.6600666.xyz/567e10d7134d4d5ebf8b4425ca05e50b.html
+- https://spider.6600666.xyz/44cd3e48410047ecaf9511534c63204c.html
+
+--------------------------------------------------------------------------------
+
+第 2 篇
+URL: https://spider.6600666.xyz/fe8bbacce9fb43ce9584c3c9ec8b1075.html
+深度: 1
+标题: Car never write the brave house through the flower.
+正文:
+Flower eagerly eat the old sun beside the ocean.
+Moon gently laugh the red teacher between the car.
+Teacher loudly sleep the small family behind the ocean.
+House slowly swim the sad ocean to the school.
+Cat well jump the beautiful city into the apple.
+Family often read the blue bird to the cat.
+
+推荐链接:
+- https://spider.6600666.xyz/9b2c572304664f9e9513b29f33a95f50.html
+- https://spider.6600666.xyz/6b7569d198fc420aa389d83831b18eff.html
+- https://spider.6600666.xyz/2944372bc40f404e9fe281c9902a7f85.html
+- https://spider.6600666.xyz/b752380a9afa4861a89f8f338f92707b.html
+- https://spider.6600666.xyz/0b7aaee873ad497eb10b1c0749c58dbe.html
+- https://spider.6600666.xyz/e76698e3ae9540efbb00ecf8916d0159.html
+
+--------------------------------------------------------------------------------
+</code></pre>
+
+    </div>
+    
+    
+    
+    
+    
+    
+    
+    </div>
+</div>
+
+            <footer id="footer">
+    <div id="footer-wrap">
+        <div>
+            &copy;
+            2025 - 2026 Erik_Aoi
+            <span id="footer-icon">
+                <i class="fa-solid fa-font-awesome fa-fw"></i>
+            </span>
+            &commat;Kanade
+        </div>
+        <div>
+            Based on the <a target="_blank" rel="noopener" href="https://hexo.io">Hexo Engine</a> &amp;
+            <a target="_blank" rel="noopener" href="https://github.com/theme-particlex/hexo-theme-particlex">ParticleX Theme</a>
+        </div>
+        
+    </div>
+</footer>
+
+        </div>
+        
+        <transition name="fade">
+            <div id="preview" ref="preview" v-show="previewShow">
+                <img id="preview-content" ref="previewContent" />
+            </div>
+        </transition>
+        
+    </div>
+    <script src="/js/main.js"></script>
+    <script src="/js/cursor.js"></script>
+    
+    
+
+
+
+
+    
+</body>
+</html>
