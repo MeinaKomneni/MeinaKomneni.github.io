@@ -211,7 +211,7 @@
                 
                 <span class="tag">
                     
-                    <a href="/tags/WriteUp/" style="color: #ffa2c4">
+                    <a href="/tags/WriteUp/" style="color: #00bcd4">
                         WriteUp
                     </a>
                 </span>
@@ -223,9 +223,10 @@
     <div class="content" v-pre>
         <p>整个实验的任务是要实现一个特色的C–语言的词法分析和语法分析。</p>
 <p>可以根据附件的 <code>C--</code> 语言文法示意图，定义 <code>token</code> 和文法规则。</p>
-<h3 id="Tree部分"><a href="#Tree部分" class="headerlink" title="Tree部分"></a>Tree部分</h3><p>因为实验要求打印语法树，定义了结构体和一些建树的函数</p>
+<h3 id="Tree部分">Tree部分</h3>
+<p>因为实验要求打印语法树，定义了结构体和一些建树的函数</p>
 <p><code>tree.h</code>：</p>
-<pre><code class="c">#ifndef TREE_H
+<pre><code class="language-c">#ifndef TREE_H
 #define TREE_H
 
 #include &lt;stdarg.h&gt;
@@ -256,7 +257,7 @@ extern int analyze_flag;
 #endif
 </code></pre>
 <p><code>tree.c</code>：</p>
-<pre><code class="c">#include &quot;tree.h&quot;
+<pre><code class="language-c">#include &quot;tree.h&quot;
 #include &lt;stdio.h&gt;
 #include &lt;stdlib.h&gt;
 #include &lt;string.h&gt;
@@ -361,7 +362,7 @@ static void print_stmt_source(Node *node, const char **prev_name) &#123;
     if (node-&gt;is_token) &#123;
         const char *text = node-&gt;token_name ? node-&gt;token_name : node-&gt;extra;
         if (text) &#123;
-            if (needs_space_before(*prev_name, node-&gt;name, text)) putchar(&#39; &#39;);
+            if (needs_space_before(*prev_name, node-&gt;name, text)) putchar(' ');
             fputs(text, stdout);
             *prev_name = node-&gt;name;
         &#125;
@@ -416,14 +417,16 @@ void print_stmt_ast(Node *stmt) &#123;
     const char *prev_name = NULL;
     printf(&quot;Statement: &quot;);
     print_stmt_source(stmt, &amp;prev_name);
-    putchar(&#39;\n&#39;);
+    putchar('\n');
     printf(&quot;Statement AST:\n&quot;);
     print_tree(stmt, 0);
-    putchar(&#39;\n&#39;);
+    putchar('\n');
 &#125;
+
 </code></pre>
-<h3 id="bison部分"><a href="#bison部分" class="headerlink" title="bison部分"></a>bison部分</h3><p>先看bison的部分，首先是 <code>token</code>，也就是终结符：</p>
-<pre><code class="plaintext">INT FLOAT ID Type
+<h3 id="bison部分">bison部分</h3>
+<p>先看bison的部分，首先是 <code>token</code>，也就是终结符：</p>
+<pre><code class="language-plaintext">INT FLOAT ID Type
 SEMI COMMA ASSIGNOP RELOP
 PLUS MINUS STAR DIV
 ND OR NOT DOT
@@ -431,7 +434,7 @@ LP RP LB RB LC RC
 STRUCT RETURN IF ELSE WHILE
 </code></pre>
 <p>然后是非终结符：</p>
-<pre><code class="plaintext">/* non-terminals */
+<pre><code class="language-plaintext">/* non-terminals */
 %type &lt;node&gt; Program ExtDefList ExtDef ExtDecList
 %type &lt;node&gt; Specifier StructSpecifier OptTag Tag
 %type &lt;node&gt; VarDec FunDec VarList ParamDec
@@ -441,7 +444,7 @@ STRUCT RETURN IF ELSE WHILE
 </code></pre>
 <p>同时，对于以下终结符（和运算有关），需要确定它们的优先级：</p>
 <p><code>%left</code> 表示左结合，<code>%right</code> 表示右结合，<code>%nonassoc</code> 表示不结合，优先级从低到高。</p>
-<pre><code class="plaintext">/* precedence (low → high) */
+<pre><code class="language-plaintext">/* precedence (low → high) */
 %nonassoc LOWER_THAN_ELSE //
 %nonassoc ELSE // else的优先级最低
 %right ASSIGNOP // 赋值运算右结合，从右到左进行，即 a=b=c &lt;=&gt; a=(b=c)
@@ -453,16 +456,16 @@ STRUCT RETURN IF ELSE WHILE
 %right NOT // !的优先级更高
 %left LP RP LB RB DOT // ( ) [ ] . 的优先级最高
 </code></pre>
-<p>其中，<code>LOWER_THAN_ELSE</code> 定义一个虚拟的最低优先级，<code>ELSE</code> 需要比”没有 else 的 if” 优先级更高。</p>
-<p>通常语言都规定：<code>else</code> 和最近的那个还没匹配的 <code>if</code> 结合。为了避免发生移进&#x2F;归约冲突，我们就让 <code>ELSE</code> 的优先级高于 <code>LOWER_THAN_ELSE</code>。</p>
-<pre><code class="plaintext">  if a then  // else 的优先级需要高于这个if
+<p>其中，<code>LOWER_THAN_ELSE</code> 定义一个虚拟的最低优先级，<code>ELSE</code> 需要比&quot;没有 else 的 if&quot; 优先级更高。</p>
+<p>通常语言都规定：<code>else</code> 和最近的那个还没匹配的 <code>if</code> 结合。为了避免发生移进/归约冲突，我们就让 <code>ELSE</code> 的优先级高于 <code>LOWER_THAN_ELSE</code>。</p>
+<pre><code class="language-plaintext">  if a then  // else 的优先级需要高于这个if
       if b then // 这样它才会匹配这个 if
           s1
       else
           s2
 </code></pre>
 <p>文法部分照着示意图抄就行了，{}里是规约到这里时所做的动作，这里就是建树。</p>
-<pre><code class="c">Program
+<pre><code class="language-c">Program
     : ExtDefList            &#123; root = make_node(&quot;Program&quot;, yylineno, 1, $1); &#125;
     ;
 
@@ -616,8 +619,9 @@ Args
     | Exp                           &#123; $$ = make_node(&quot;Args&quot;, yylineno, 1, $1); &#125;
     ;
 </code></pre>
-<h3 id="flex部分"><a href="#flex部分" class="headerlink" title="flex部分"></a>flex部分</h3><p><code>flex</code> 的任务就是正则匹配，匹配到后执行 <code>make_token</code> 的动作，生成叶子节点。</p>
-<pre><code class="c">%&#123;
+<h3 id="flex部分">flex部分</h3>
+<p><code>flex</code> 的任务就是正则匹配，匹配到后执行 <code>make_token</code> 的动作，生成叶子节点。</p>
+<pre><code class="language-c">%&#123;
 #include &quot;tree.h&quot;
 #include &quot;parser.tab.h&quot;
 #include &lt;stdlib.h&gt;
@@ -688,6 +692,7 @@ extern int has_error;
 .                   &#123; printf(&quot;Error type A at Line %d: Mysterious character \&quot;%s\&quot;.\n&quot;, yylineno, yytext); has_error = 1; &#125;
 
 %%
+
 </code></pre>
 <p>最后的打印直接对着树进行前序遍历即可。</p>
 

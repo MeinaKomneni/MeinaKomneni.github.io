@@ -211,14 +211,14 @@
                 
                 <span class="tag">
                     
-                    <a href="/tags/pwn/" style="color: #ff7d73">
+                    <a href="/tags/pwn/" style="color: #03a9f4">
                         pwn
                     </a>
                 </span>
                 
                 <span class="tag">
                     
-                    <a href="/tags/kernel/" style="color: #03a9f4">
+                    <a href="/tags/kernel/" style="color: #00bcd4">
                         kernel
                     </a>
                 </span>
@@ -228,16 +228,22 @@
         </div>
     
     <div class="content" v-pre>
-        <p>参考文献:<br><a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_45030965/article/details/131411669">https://blog.csdn.net/weixin_45030965/article/details/131411669</a><br><a target="_blank" rel="noopener" href="https://kiprey.github.io/2021/10/kernel_pwn_introduction/">https://kiprey.github.io/2021/10/kernel_pwn_introduction/</a><br><a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_45030965/article/details/131411669">https://blog.csdn.net/weixin_45030965/article/details/131411669</a></p>
-<h3 id="调试"><a href="#调试" class="headerlink" title="调试"></a>调试</h3><p>boot.sh 添加调试 (-gdb tcp::1234)：</p>
-<pre><code class="bash">#!/bin/bash
-qemu-system-x86_64 -initrd rootfs.cpio -kernel bzImage -append &#39;console=ttyS0 root=/dev/ram oops=panic panic=1&#39; -enable-kvm -monitor /dev/null -m 128M --nographic  -smp cores=1,threads=1 -cpu kvm64,+smep -gdb tcp::1234
+        <p>参考文献:<br>
+<a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_45030965/article/details/131411669">https://blog.csdn.net/weixin_45030965/article/details/131411669</a><br>
+<a target="_blank" rel="noopener" href="https://kiprey.github.io/2021/10/kernel_pwn_introduction/">https://kiprey.github.io/2021/10/kernel_pwn_introduction/</a><br>
+<a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_45030965/article/details/131411669">https://blog.csdn.net/weixin_45030965/article/details/131411669</a></p>
+<h3 id="调试">调试</h3>
+<p><a target="_blank" rel="noopener" href="http://boot.sh">boot.sh</a> 添加调试 (-gdb tcp::1234)：</p>
+<pre><code class="language-bash">#!/bin/bash
+qemu-system-x86_64 -initrd rootfs.cpio -kernel bzImage -append 'console=ttyS0 root=/dev/ram oops=panic panic=1' -enable-kvm -monitor /dev/null -m 128M --nographic  -smp cores=1,threads=1 -cpu kvm64,+smep -gdb tcp::1234
+
 </code></pre>
 <p>如果是平时学习，可以自己编译出带符号的内核、自己写有洞的模块并测试，调试起来是非常舒服的；</p>
 <p>而对于做题来说，则需要用 extract-vmlinux 提取 vmlinux，用 vmlinux_to_elf 恢复函数名，才能带函数名进行调试。</p>
-<p>笔者更喜欢写两个文件： exp.c 和 exp.py，exp.c 是名副其实的exp，而 exp.py 用来打包、启动并调试；启动后Ctrl+c停在native_safe_halt处，接着在sys_execve处下断点，最后运行exp。</p>
+<p>笔者更喜欢写两个文件： exp.c 和 <a target="_blank" rel="noopener" href="http://exp.py">exp.py</a>，exp.c 是名副其实的exp，而 <a target="_blank" rel="noopener" href="http://exp.py">exp.py</a> 用来打包、启动并调试；启动后Ctrl+c停在native_safe_halt处，接着在sys_execve处下断点，最后运行exp。</p>
 <p>这里附上本人学习用的模块源码和脚本。</p>
-<h3 id="my-module-c"><a href="#my-module-c" class="headerlink" title="my_module.c"></a>my_module.c</h3><pre><code class="c">#include &lt;linux/module.h&gt;
+<h3 id="my-module-c">my_module.c</h3>
+<pre><code class="language-c">#include &lt;linux/module.h&gt;
 #include &lt;linux/kernel.h&gt;
 #include &lt;linux/init.h&gt;
 #include &lt;linux/fs.h&gt;
@@ -424,7 +430,8 @@ static void __exit debug_exit(void)
 module_init(debug_init);
 module_exit(debug_exit);
 </code></pre>
-<h3 id="exp-c"><a href="#exp-c" class="headerlink" title="exp.c"></a>exp.c</h3><pre><code class="python">#include &lt;stdio.h&gt;
+<h3 id="exp-c">exp.c</h3>
+<pre><code class="language-python">#include &lt;stdio.h&gt;
 #include &lt;unistd.h&gt;
 #include &lt;stdlib.h&gt;
 #include &lt;fcntl.h&gt;
@@ -477,7 +484,8 @@ int main() &#123;
     return 0;
 &#125;
 </code></pre>
-<h3 id="exp-py"><a href="#exp-py" class="headerlink" title="exp.py"></a>exp.py</h3><pre><code class="python">#!/usr/bin/env python3
+<h3 id="exp-py"><a target="_blank" rel="noopener" href="http://exp.py">exp.py</a></h3>
+<pre><code class="language-python">#!/usr/bin/env python3
 import os
 import sys
 import shutil
@@ -489,9 +497,9 @@ bzImage = &quot;./bzImage&quot;
 fs = &quot;./rootfs.cpio&quot;
 vmlinux = &quot;~/pwn/kernel/linux-6.18.5/vmlinux&quot;
 
-context.log_level = &#39;debug&#39;
-context.terminal = [&#39;tmux&#39;, &#39;splitw&#39;, &#39;-h&#39;]
-context.arch = &#39;amd64&#39;
+context.log_level = 'debug'
+context.terminal = ['tmux', 'splitw', '-h']
+context.arch = 'amd64'
 
 if not os.path.exists(&quot;./bzImage.bak&quot;):
     shutil.copy(bzImage, &quot;./bzImage.bak&quot;)
@@ -513,47 +521,47 @@ if args.GDB:
     io = process(&quot;./boot.sh&quot;)
     
     # start gdb
-    gdbscript = f&#39;&#39;&#39;
+    gdbscript = f'''
     target remote :1234
-    &#39;&#39;&#39;
+    '''
     
     # Write gdbscript to a temporary file
     with open(&quot;/tmp/gdbscript&quot;, &quot;w&quot;) as f:
         f.write(gdbscript)
         
     # Launch gdb in a new terminal using tmux
-    os.system(f&quot;tmux splitw -h &#39;gdb -x /tmp/gdbscript &#123;vmlinux&#125;&#39;&quot;)
+    os.system(f&quot;tmux splitw -h 'gdb -x /tmp/gdbscript &#123;vmlinux&#125;'&quot;)
     
     io.interactive()
 
 if args.REMOTE:
     # compile exp.c
-    context.log_level = &#39;info&#39;
+    context.log_level = 'info'
     os.system(&quot;musl-gcc -o exp exp.c -static -Os -s -fno-ident -fno-asynchronous-unwind-tables -Wl,--build-id=none &amp;&amp; chmod +777 exp&quot;)
 
     with open(&quot;exp&quot;, &quot;rb&quot;) as f:
         con = f.read()
     
     pay = base64.b64encode(con).decode()
-    io = conn = remote(&#39;101.42.41.80&#39;, 32864)
+    io = conn = remote('101.42.41.80', 32864)
     io.sendline()
-    io.recvuntil(b&#39;$&#39;)
-    io.sendline(b&#39;cd /tmp&#39;)
+    io.recvuntil(b'$')
+    io.sendline(b'cd /tmp')
     chunk_size = 800
     total = len(pay)
 
     for i in range(0, total, chunk_size):
         chunk = pay[i:i+chunk_size]
-        io.sendline(f&#39;echo &quot;&#123;chunk&#125;&quot; &gt;&gt; exp.b64&#39;.encode())
+        io.sendline(f'echo &quot;&#123;chunk&#125;&quot; &gt;&gt; exp.b64'.encode())
         time.sleep(0.05)
         if i % (chunk_size * 5) == 0:
             log.info(f&quot;Progress: &#123;i&#125;/&#123;total&#125; bytes&quot;)
 
-    io.sendline(b&#39;base64 -d exp.b64 &gt; exp&#39;)
-    io.sendline(b&#39;chmod +x exp&#39;)
-    io.sendline(b&#39;rm exp.b64&#39;)
+    io.sendline(b'base64 -d exp.b64 &gt; exp')
+    io.sendline(b'chmod +x exp')
+    io.sendline(b'rm exp.b64')
     log.success(&quot;File uploaded successfully!&quot;)
-    io.sendline(b&#39;./exp&#39;)
+    io.sendline(b'./exp')
 
     io.interactive()
 </code></pre>

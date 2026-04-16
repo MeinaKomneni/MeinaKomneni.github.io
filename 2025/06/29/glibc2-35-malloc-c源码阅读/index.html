@@ -211,14 +211,14 @@
                 
                 <span class="tag">
                     
-                    <a href="/tags/pwn/" style="color: #00a596">
+                    <a href="/tags/pwn/" style="color: #ff7d73">
                         pwn
                     </a>
                 </span>
                 
                 <span class="tag">
                     
-                    <a href="/tags/heap/" style="color: #ff7d73">
+                    <a href="/tags/heap/" style="color: #ffa2c4">
                         heap
                     </a>
                 </span>
@@ -228,8 +228,9 @@
         </div>
     
     <div class="content" v-pre>
-        <h2 id="malloc-state"><a href="#malloc-state" class="headerlink" title="malloc_state"></a>malloc_state</h2><p>当我们在 pwndbg 中 p main_arena，打印的东西好像就是这个。</p>
-<pre><code class="c">struct malloc_state
+        <h2 id="malloc-state">malloc_state</h2>
+<p>当我们在 pwndbg 中 p main_arena，打印的东西好像就是这个。</p>
+<pre><code class="language-c">struct malloc_state
 &#123;
   /* Serialize access.  */
   __libc_lock_define (, mutex);
@@ -290,7 +291,8 @@ Unsorted bin (1)：临时存放刚释放的块
 <p>binmap 标识哪些 bin 非空。</p>
 <p>剩下的大概都是和线程有关的，对 pwn 应该不重要。</p>
 <p>接下来正式开始 malloc。</p>
-<h2 id="libc-malloc"><a href="#libc-malloc" class="headerlink" title="__libc_malloc"></a>__libc_malloc</h2><pre><code class="c">#if IS_IN (libc)  /*当为 libc.so 编译时，IS_IN (libc) 为真*/
+<h2 id="libc-malloc">__libc_malloc</h2>
+<pre><code class="language-c">#if IS_IN (libc)  /*当为 libc.so 编译时，IS_IN (libc) 为真*/
 void *
 __libc_malloc (size_t bytes) /*bytes 就是我们的输入*/
 &#123;
@@ -305,7 +307,7 @@ __libc_malloc (size_t bytes) /*bytes 就是我们的输入*/
 #if USE_TCACHE
   /* int_free also calls request2size, be careful to not pad twice.  */
   size_t tbytes;
-  if (!checked_request2size (bytes, &amp;tbytes)) /*检查请求大小是否超过PTRDIFF_MAX，事实上即使是&#39;0xff&#39;*16也不会超过。对 pwn 不重要。*/
+  if (!checked_request2size (bytes, &amp;tbytes)) /*检查请求大小是否超过PTRDIFF_MAX，事实上即使是'0xff'*16也不会超过。对 pwn 不重要。*/
   /**/
     &#123;
       __set_errno (ENOMEM);
@@ -330,7 +332,7 @@ __libc_malloc (size_t bytes) /*bytes 就是我们的输入*/
     &#123;
       victim = tag_new_usable (_int_malloc (&amp;main_arena, bytes));
       assert (!victim || chunk_is_mmapped (mem2chunk (victim)) ||
-          &amp;main_arena == arena_for_chunk (mem2chunk (victim)));
+	      &amp;main_arena == arena_for_chunk (mem2chunk (victim)));
       return victim;
     &#125;
 
@@ -358,7 +360,8 @@ __libc_malloc (size_t bytes) /*bytes 就是我们的输入*/
 libc_hidden_def (__libc_malloc)
 </code></pre>
 <p>先跳转阅读 tcache_get 函数：</p>
-<h2 id="tcache-get"><a href="#tcache-get" class="headerlink" title="tcache_get"></a>tcache_get</h2><pre><code class="c">tcache_get (size_t tc_idx)
+<h2 id="tcache-get">tcache_get</h2>
+<pre><code class="language-c">tcache_get (size_t tc_idx)
 &#123;
   tcache_entry *e = tcache-&gt;entries[tc_idx];
   if (__glibc_unlikely (!aligned_OK (e)))
